@@ -38,7 +38,7 @@ There is no main function. All C and pre-processor functionalities may be used.
 
 ### Coding a new simulator
 
-It is best to start and modify a already exisiting simulator. The simulator must contain 3 functions:
+It is best to start and modify an already exisiting simulator. The simulator must contain 3 functions:
 
 1. void check_sec_algo(void): this function applies some test vectors and prints wether the test passes or not.
 2. void t_test_sec_algo(Options &options): this function runs the t_test by generating inputs and collecting traces
