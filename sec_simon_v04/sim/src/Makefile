@@ -49,7 +49,7 @@ LIBS := -lsim
 	g++ -c $(CFLAGS) -o $@ $<
 
 .PHONY: all
-all: sim_sec_simon.exe
+all: sim_sec_simon_v04.exe
 
 .PHONY: clean
 clean:
@@ -58,10 +58,10 @@ clean:
 .PHONY: .FORCE
 
 .PHONY: data
-data: ../../data/sec_simon.npy
+data: ../../data/sec_simon_v04.npy
 
- ../../data/sec_simon.npy: sim_sec_simon.exe .FORCE
+ ../../data/sec_simon_v04.npy: sim_sec_simon_v04.exe .FORCE
 	./$< -n 1000000 -o $@
 
-sim_sec_simon.exe: sec_simon.o
+sim_sec_simon_v04.exe: sec_simon_v04.o
 	g++ $(LDFLAGS) -o $@ $^ $(LIBS)

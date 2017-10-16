@@ -26,7 +26,7 @@
 
 /******************************************************************************
  *
- * interface to sec_simon simulation
+ * interface to sec_simon_v04 simulation
  *
  ******************************************************************************/
 
@@ -49,9 +49,9 @@
 
 void load(Cpu *cpu)
 {
-	if (cpu->load("./sec_simon.bin") < 0)
+	if (cpu->load("./sec_simon_v04.bin") < 0)
 	{
-		printf("-- ERROR: can not load ./sec_simon.bin\n");
+		printf("-- ERROR: can not load ./sec_simon_v04.bin\n");
 		std::exit(EXIT_FAILURE);
 	}
 }
@@ -63,7 +63,7 @@ void mask(std::mt19937 &rnd_gen_uint32, uint32_t x, uint32_t *v, uint32_t *m)
 }
 
 
-unsigned long int sec_simon_wrapper(std::mt19937 &rnd_gen_uint32, Cpu *cpu, uint32_t *l, uint32_t *r, uint32_t *rk)
+unsigned long int sec_simon_v04_wrapper(std::mt19937 &rnd_gen_uint32, Cpu *cpu, uint32_t *l, uint32_t *r, uint32_t *rk)
 {
 	/* mask inputs */
 	uint32_t buffer[4];
@@ -122,7 +122,7 @@ void check_sec_algo(Options &options)
 		0x18199c02, 0x719e3f1c, 0x0c1cf793, 0x15df4696
 	};
 
-	unsigned int long count = sec_simon_wrapper(rnd_gen_uint32, &cpu, &l, &r, rk);
+	unsigned int long count = sec_simon_v04_wrapper(rnd_gen_uint32, &cpu, &l, &r, rk);
 	printf("-- %lu instructions executed\n", count);
 	printf("-- l = 0x%08x, r = 0x%08x => ", l, r);
 	if (l == 0x44c8fc20 && r == 0xb9dfa07a)
@@ -172,7 +172,7 @@ void t_test_sec_algo(Options &options)
 		trace_file_random.open(filename_random, std::ios::out | std::ios::binary);
 	}
 
-	Progress_bar progress_bar(options.n_measure, std::cout, "Simulating sec_simon ...\n");
+	Progress_bar progress_bar(options.n_measure, std::cout, "Simulating sec_simon_v04 ...\n");
 	for (unsigned long int measure_idx = 0; measure_idx < options.n_measure; ++measure_idx)
 	{
 		uint32_t l;
@@ -180,7 +180,7 @@ void t_test_sec_algo(Options &options)
 		/* fixed */
 		l = l_fixed;
 		r = r_fixed;
-		sec_simon_wrapper(rnd_gen_uint32, &cpu, &l, &r, rk);
+		sec_simon_v04_wrapper(rnd_gen_uint32, &cpu, &l, &r, rk);
 		trace = cpu.get_pwr_trace();
 		if (measure_idx == 0)
 		{
@@ -194,7 +194,7 @@ void t_test_sec_algo(Options &options)
 		/* random */
 		l = rnd_gen_uint32();
 		r = rnd_gen_uint32();
-		sec_simon_wrapper(rnd_gen_uint32, &cpu, &l, &r, rk);
+		sec_simon_v04_wrapper(rnd_gen_uint32, &cpu, &l, &r, rk);
 		trace = cpu.get_pwr_trace();
 		ttest_ptr->update2(trace);
 		if (options.save_traces)

@@ -50,30 +50,30 @@ CFLAGS := \
 	$(OBJCOPY) -O binary $< $@
 
 %.npy %.trace_index: %.bin
-	../../sim/build/sim_sec_simon.exe -n $(N_MEASURE) -o $@ -i $(addsuffix .trace_index, $(basename $@))
+	../../sim/build/sim_sec_simon_v04.exe -n $(N_MEASURE) -o $@ -i $(addsuffix .trace_index, $(basename $@))
 
 .PRECIOUS: %.o
 
 .PHONY: all
-all: sec_simon.bin
+all: sec_simon_v04.bin
 
 .PHONY: clean
 clean:
 	/bin/rm -f *.o *.lst *.bin *.npy *.trace_index
 
 .PHONY: sim
-sim: sec_simon.npy
+sim: sec_simon_v04.npy
 
 .PHONY: debug
-debug: sec_simon.npy sec_simon.trace_index
+debug: sec_simon_v04.npy sec_simon_v04.trace_index
 	../../../python/draw_t_test.py $< --trace_index=$(addsuffix .trace_index, $(basename $<))
 
 .PHONY: data
-data: ../../data/sec_simon.npy
+data: ../../data/sec_simon_v04.npy
 
-../../data/sec_simon.npy: sec_simon.bin
-	time -p ../../sim/build/sim_sec_simon.exe -n 1000000 -o $@ -i $(addsuffix .trace_index, $(basename $@))
+../../data/sec_simon_v04.npy: sec_simon_v04.bin
+	time -p ../../sim/build/sim_sec_simon_v04.exe -n 1000000 -o $@ -i $(addsuffix .trace_index, $(basename $@))
 
 .PHONY: cleandata
 cleandata:
-	/bin/rm -f ../../data/sec_simon.npy ../../data/sec_simon.trace_index
+	/bin/rm -f ../../data/sec_simon_v04.npy ../../data/sec_simon_v04.trace_index

@@ -2,7 +2,7 @@
 
 #define CR "\n\t"
 
-void sec_simon(uint32_t *buffer, uint32_t rk_masked)
+void sec_simon_v04(uint32_t *buffer, uint32_t rk_masked)
 {
 	asm volatile (
 		/* r2: rv, r3: rm, r4: lv, r5: lm
