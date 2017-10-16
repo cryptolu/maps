@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 ################################################################################
 #
 # University of Luxembourg
@@ -23,7 +24,6 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 ################################################################################
-#! /usr/bin/env python
 
 N_ROUND = 25
 

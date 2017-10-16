@@ -43,6 +43,13 @@
 #include "debug.h"
 
 
+void Cpu::report_error(const char *msg, const char *location)
+{
+    fprintf(stderr, "-- ERROR: %s in %s at address 0x%08x\n", msg, location, this->regs[PC].read());
+    std::exit(EXIT_FAILURE);
+}
+
+
 Cpu::Cpu(std::string trace_index_filename)
 {
 	for (unsigned int i = 0; i < 16; i++)
@@ -94,8 +101,7 @@ void Cpu::write_register(unsigned int reg_idx, uint32_t value)
 	}
 	else
 	{
-		fprintf(stderr, "-- ERROR: reg_idx must be < 16 in write_register().\n");
-		std::exit(EXIT_FAILURE);
+		this->report_error("reg_idx must be < 16", "Cpu::write_register()");
 	}
 }
 
@@ -187,8 +193,7 @@ uint32_t Cpu::decode_imm_shift(unsigned int op, unsigned int imm, unsigned int s
 		case OP_ROR:
 			if (imm == 0)
 			{ /* rrx */
-				fprintf(stderr, "-- ERROR: rrx unsupported in decode_imm_shift at address 0x%08x\n", this->regs[PC].read());
-				std::exit(EXIT_FAILURE);
+				this->report_error("RRX unsupported", "decode_imm_shift()");
 			}
 			else
 			{ /* ror */
@@ -196,8 +201,7 @@ uint32_t Cpu::decode_imm_shift(unsigned int op, unsigned int imm, unsigned int s
 			}
 			break;
 		default:
-			fprintf(stderr, "-- ERROR: unsupported shift opcode in decode_imm_shift at address 0x%08x\n", this->regs[PC].read());
-			std::exit(EXIT_FAILURE);
+			this->report_error("unsupported shift opcode", "decode_imm_shift()");
 			break;
 	}
 	return y;
@@ -283,8 +287,7 @@ unsigned int Cpu::conditional_branch(unsigned int cond, int32_t offset, bool is_
 			tst = 1;
 			break;
 		default:
-			fprintf(stderr, "-- ERROR: unsupported cond in OP16_COND_BRANCH at address 0x%08x\n", p_addr);
-			std::exit(EXIT_FAILURE);				
+			this->report_error(" unsupported cond", "OP16_COND_BRANCH");
 			break;
 	}
 	if (tst == 1)
@@ -498,8 +501,8 @@ int Cpu::step(void)
 					this->regs[rd].write(y);
 					break;
 				default:
-					fprintf(stderr, "-- ERROR: incorrect operand in OP32_DATA_SHIFTED_REG at address 0x%08x\n", p_addr);
-					std::exit(EXIT_FAILURE);
+					this->report_error("incorrect operand", "OP32_DATA_SHIFTED_REG");
+					break;
 			}
 			p_addr += 4;
 		}
@@ -605,8 +608,8 @@ int Cpu::step(void)
 					this->regs[rd].write(y);
 					break;
 				default:
-					fprintf(stderr, "-- ERROR: unsupported opcode in OP32_DATA_MOD_IMM at address 0x%08x\n", this->regs[PC].read());
-					std::exit(EXIT_FAILURE);
+					this->report_error("unsupported opcode", "OP32_DATA_MOD_IMM");
+					break;
 			}
 			p_addr += 4;
 		}
@@ -620,31 +623,26 @@ int Cpu::step(void)
 			{
 				if (rn == 15)
 				{ /* ADR */
-					fprintf(stderr, "-- ERROR: unsupported ADR(add) in OP32_DATA_PLAIN_IMM at address 0x%08x\n", this->regs[PC].read());
-					std::exit(EXIT_FAILURE);
+					this->report_error("unsupported ADR(add)", "OP32_DATA_PLAIN_IMM");
 				}
 				else
 				{ /* ADD (12-bit) */
-					fprintf(stderr, "-- ERROR: unsupported ADD OP32_DATA_PLAIN_IMM at address 0x%08x\n", this->regs[PC].read());
-					std::exit(EXIT_FAILURE);
+					this->report_error("unsupported ADD", "OP32_DATA_PLAIN_IMM");
 				}
 			}
 			else if (op == 4)
 			{ /* MOV (16-bit) */
-					fprintf(stderr, "-- ERROR: unsupported MOV in OP32_DATA_PLAIN_IMM at address 0x%08x\n", this->regs[PC].read());
-					std::exit(EXIT_FAILURE);
+				this->report_error("unsupported MOV", "OP32_DATA_PLAIN_IMM");
 			}
 			else if (op == 10)
 			{
 				if (rn == 15)
 				{ /* ADR */
-					fprintf(stderr, "-- ERROR: unsupported ADR(sub) in OP32_DATA_PLAIN_IMM at address 0x%08x\n", this->regs[PC].read());
-					std::exit(EXIT_FAILURE);
+					this->report_error("unsupported ADR(sub)", "OP32_DATA_PLAIN_IMM");
 				}
 				else
 				{ /* SUB (12-bit) */
-					fprintf(stderr, "-- ERROR: unsupported SUB in OP32_DATA_PLAIN_IMM at address 0x%08x\n", this->regs[PC].read());
-					std::exit(EXIT_FAILURE);
+					this->report_error("unsupported SUB", "OP32_DATA_PLAIN_IMM");
 				}
 			}
 			else if (op == 12)
@@ -661,15 +659,13 @@ int Cpu::step(void)
 			}
 			else if (op == 20)
 			{ /* SBFX */
-				fprintf(stderr, "-- ERROR: unsupported SBFX in OP32_DATA_PLAIN_IMM at address 0x%08x\n", this->regs[PC].read());
-				std::exit(EXIT_FAILURE);
+				this->report_error("unsupported SBFX", "OP32_DATA_PLAIN_IMM");
 			}
 			else if (op == 22)
 			{
 				if (rn == 15)
 				{ /* BFC */
-					fprintf(stderr, "-- ERROR: unsupported BFX in OP32_DATA_PLAIN_IMM at address 0x%08x\n", this->regs[PC].read());
-					std::exit(EXIT_FAILURE);
+					this->report_error("unsupported BFX", "OP32_DATA_PLAIN_IMM");
 				}
 				else
 				{ /* BFI A6.7.114/T1 */
@@ -689,13 +685,11 @@ int Cpu::step(void)
 			}
 			else if (op == 28)
 			{ /* UBFX */
-				fprintf(stderr, "-- ERROR: unsupported UBFX in OP32_DATA_PLAIN_IMM at address 0x%08x\n", this->regs[PC].read());
-				std::exit(EXIT_FAILURE);
+				this->report_error("unsupported UBFX", "OP32_DATA_PLAIN_IMM");
 			}
 			else
 			{
-				fprintf(stderr, "-- ERROR: unsupported operand in OP32_DATA_PLAIN_IMM at address 0x%08x\n", this->regs[PC].read());
-				std::exit(EXIT_FAILURE);
+				this->report_error("unsupported operand", "OP32_DATA_PLAIN_IMM");
 			}
 			p_addr += 4;
 		}
@@ -716,13 +710,11 @@ int Cpu::step(void)
 			}
 			else if ((op1 == 0) && (GET_BIT(op2, 3) == 1))
 			{ /* SXTH */
-				fprintf(stderr, "-- ERROR: instruction SXTH not supported in OP32_DATA_REG at address 0x%08x\n", this->regs[PC].read());
-				std::exit(EXIT_FAILURE);
+				this->report_error("instruction SXTH not supported", "OP32_DATA_REG");
 			}
 			else if ((op1 == 1) && (GET_BIT(op2, 3) == 1))
 			{ /* UXTH */
-				fprintf(stderr, "-- ERROR: instruction UXTH not supported in OP32_DATA_REG at address 0x%08x\n", this->regs[PC].read());
-				std::exit(EXIT_FAILURE);
+				this->report_error("instruction UXTH not supported", "OP32_DATA_REG");
 			}
 			else if ((op1 == 2) || (op1 == 3))
 			{ /* LSR A6.7.60/T2 */
@@ -742,13 +734,11 @@ int Cpu::step(void)
 			}
 			else if ((op1 == 4) && (GET_BIT(op2, 3) == 1))
 			{ /* SXTB */
-				fprintf(stderr, "-- ERROR: instruction SXTB not supported in OP32_DATA_REG at address 0x%08x\n", this->regs[PC].read());
-				std::exit(EXIT_FAILURE);
+				this->report_error("instruction SXTB not supported", "OP32_DATA_REG");
 			}
 			else if ((op1 == 5) && (GET_BIT(op2, 3) == 1))
 			{ /* UXTB */
-				fprintf(stderr, "-- ERROR: instruction UXTB not supported in OP32_DATA_REG at address 0x%08x\n", this->regs[PC].read());
-				std::exit(EXIT_FAILURE);
+				this->report_error("instruction UXTB not supported", "OP32_DATA_REG");
 			}
 			else if ((op1 == 6 || op1 == 7) && (op2 == 0))
 			{ /* ROR A&.7.104/T2 */
@@ -760,13 +750,11 @@ int Cpu::step(void)
 			}
 			else if ((op1 == 8 || op1 == 9 || op1 == 10 || op1 == 11) && (op2 == 8 || op2 == 9 || op2 == 10 || op2 == 11))
 			{ /* MISC A5-29 */
-				fprintf(stderr, "-- ERROR: instruction MISC not supported in OP32_DATA_REG at address 0x%08x\n", this->regs[PC].read());
-				std::exit(EXIT_FAILURE);
+				this->report_error("instruction MISC not supported", "OP32_DATA_REG");
 			}
 			else
 			{
-				fprintf(stderr, "-- ERROR: unsupported instruction in OP32_DATA_REG at address 0x%08x\n", this->regs[PC].read());
-				std::exit(EXIT_FAILURE);
+				this->report_error("unsupported instruction", "OP32_DATA_REG");
 			}
 			p_addr += 4;
 		}
@@ -795,8 +783,7 @@ int Cpu::step(void)
 			}
 			else
 			{
-				fprintf(stderr, "-- ERROR: unsupported branch and misc. control instruction at 0x%08x\n", this->regs[PC].read());
-				std::exit(EXIT_FAILURE);
+				report_error("unsupported instruction", "OP32_BRANCH_MISC_MASK");
 			}
 		}
 		else if (((ins16 & OP32_STR_IMM_MASK) == OP32_STR_IMM_VAL) && ((ins16_b & OP32_STR_IMM_MASK_B) == OP32_STR_IMM_VAL_B))
@@ -864,8 +851,7 @@ int Cpu::step(void)
 		}
 		else
 		{
-			fprintf(stderr, "-- ERROR: unsupported 32-bit instruction @0x%08x\n", p_addr);
-			std::exit(EXIT_FAILURE);
+			this->report_error("unsupported 32-bit instruction", "Cpu::step()");
 		}
 	}
 	else
@@ -1078,8 +1064,7 @@ int Cpu::step(void)
 					break;
 					break;
 				default:
-					fprintf(stderr, "-- ERROR: undefined opcode in OP16_SHIFT_IMM_ADD_SUB_MOV_CMP at address 0x%08x\n", p_addr);
-					std::exit(EXIT_FAILURE);
+					this->report_error("undefined opcode", "OP16_SHIFT_IMM_ADD_SUB_MOV_CMP");
 					break;
 			}
 			p_addr += 2;
@@ -1133,8 +1118,7 @@ int Cpu::step(void)
 					p_addr = this->regs[rm].read();
 					break;
 				default: /* includes case '4' */
-					fprintf(stderr, "-- ERROR: undefined opcode in OP16_SPECIAL_DATA_BRANCH at address 0x%08x\n", p_addr);
-					std::exit(EXIT_FAILURE);
+					this->report_error("undefined opcode", "OP16_SPECIAL_DATA_BRANCH");
 					break;
 			}
 		}
@@ -1176,8 +1160,7 @@ int Cpu::step(void)
 		}
 		else
 		{
-			fprintf(stderr, "-- ERROR: unsupported 16-bit instruction 0x%04x @0x%08x\n", ins16, p_addr);
-			std::exit(EXIT_FAILURE);				
+			this->report_error("unsupported 16-bit instruction", "Cpu::step()");
 		}
 	}
 	this->regs[PC].write(p_addr);

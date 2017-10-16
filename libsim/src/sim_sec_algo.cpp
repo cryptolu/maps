@@ -41,6 +41,10 @@
 #include "t_test.h"
 #include "npy.h"
 #include "sim_sec_algo.h"
+#include "utils.h"
+
+#define VERSION_MAJOR 1.0
+#define VERSION_MINOR a
 
 int main(int argc, char *argv[])
 {
@@ -48,7 +52,7 @@ int main(int argc, char *argv[])
 	bool do_test = false;
 	int c;
 
-	while ((c = getopt(argc, argv, "sto:n:i:")) != -1)
+	while ((c = getopt(argc, argv, "sto:n:i:v")) != -1)
 	{
 		switch (c)
 		{
@@ -67,13 +71,18 @@ int main(int argc, char *argv[])
 			case 'n':
 				options.n_measure = strtoul(optarg, NULL, 0);
 				break;
+			case 'v':
+				printf("%s-%s\n", STR(VERSION_MAJOR), STR(VERSION_MINOR));
+				std::exit(EXIT_SUCCESS);
+				break;
 			default:
-                fprintf(stderr, "%s [-i <trace_index_file>] [-s] [-o <filename>] [-t | -n <n_measure]>\n", argv[0]);
+                fprintf(stderr, "%s -v | [-i <trace_index_file>] [-s] [-o <filename>] [-t | -n <n_measure]>\n", argv[0]);
                 fprintf(stderr, "\t-i: generate power trace index\n");
 				fprintf(stderr, "\t-s: save traces\n");
 				fprintf(stderr, "\t-t: test for correctness with test vectors\n");
 				fprintf(stderr, "\t-o: name of .npy file. Default to 't_test.npy'\n");
 				fprintf(stderr, "\t-n: number of measurements\n");
+				fprintf(stderr, "\t-v: print version number and exit\n");
 				std::exit(EXIT_FAILURE);
 		}
 	}

@@ -31,6 +31,8 @@
  ******************************************************************************/
 
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 
 unsigned int bit_count(uint32_t x)
 {

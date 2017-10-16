@@ -69,6 +69,8 @@ class Cpu
 		Tracer tracer;
 		unsigned long int instruction_count;
 
+		void report_error(const char *msg, const char *location);
+
 		std::string trace_index_filename;
 		bool generate_trace_index;
 		bool trace_index_done;

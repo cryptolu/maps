@@ -38,4 +38,9 @@
 
 unsigned int bit_count(uint32_t x);
 
+/* Stringification hacks */
+#define STR_(...) #__VA_ARGS__
+#define STR(...) STR_(__VA_ARGS__)
+
+
 #endif
