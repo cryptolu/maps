@@ -1084,7 +1084,7 @@ int Cpu::step(void)
 				case 3: /* ADD REG A6.7.4/T2 */
 					rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
 					rm = GET_FIELD(ins16, 3, 4);
-					y =  this->alu.add(this->regs[rd].read(), this->regs[rm].read(), 0);
+					y = this->alu.add(this->regs[rd].read(), this->regs[rm].read(), 0);
 					this->regs[rd].write(y);
 					p_addr += 2;
 					break;
@@ -1093,7 +1093,7 @@ int Cpu::step(void)
 				case 7: /* CMP REG A6.7.28/T2 */
 					rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
 					rm = GET_FIELD(ins16, 3, 4);
-					y =  this->alu.add(this->regs[rd].read(), this->regs[rm].read(), 1);
+					y = this->alu.add(this->regs[rd].read(), this->regs[rm].read(), 1);
 					p_addr += 2;
 					break;
 				case 8:
@@ -1102,7 +1102,7 @@ int Cpu::step(void)
 				case 11: /* MOV REG A6.7.76/T1 */
 					rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
 					rm = GET_FIELD(ins16, 3, 4);
-					y =  this->alu.add(this->regs[rd].read(), this->regs[rm].read(), 0);
+					y = this->alu.add(0, this->regs[rm].read(), 0);
 					this->regs[rd].write(y);
 					p_addr += 2;
 					break;
@@ -1156,6 +1156,18 @@ int Cpu::step(void)
 		{
 			LOG_TRACE("OP16_NOP\n");
 			/* NOP A6.7.87/T1 */
+			p_addr += 2;
+		}
+		else if ((ins16 & OP16_BREAKPOINT_MASK) == OP16_BREAKPOINT_VAL)
+		{
+			LOG_TRACE("OP16_BREAKPOINT\n");
+			/* BKPT A6.7.17 */
+			/* ideally, we should build an interface to gdb server, but it's a huge work.
+			   For the moment, let's just dump the registers...
+			 */
+			unsigned int id = GET_FIELD(ins16, 0, 8);
+			fprintf(stderr, "----- breakpoint @0x%08x, ID: 0x%02x\n", p_addr, id);
+			this->dump_regs();
 			p_addr += 2;
 		}
 		else
