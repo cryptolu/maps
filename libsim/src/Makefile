@@ -66,6 +66,21 @@ install: libsim.a
 	cp ../src/progress_bar.h $(INSTALL_DIR)/include
 	cp ../src/sim_sec_algo.h $(INSTALL_DIR)/include
 
-libsim.a: utils.o tracer.o register.o memory.o alu.o cpu.o t_test.o npy.o progress_bar.o sim_sec_algo.o
+OBJS := \
+	session_layer.o \
+	presentation_layer.o \
+	rsp_layer.o \
+	utils.o \
+	tracer.o \
+	register.o \
+	memory.o \
+	alu.o \
+	cpu.o \
+	t_test.o \
+	npy.o \
+	progress_bar.o \
+	sim_sec_algo.o
+
+libsim.a: $(OBJS)
 	ar rvs $@ $^
 

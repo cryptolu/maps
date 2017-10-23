@@ -42,6 +42,8 @@
 #include "utils.h"
 #include "debug.h"
 
+#include "rsp_layer.h"
+
 
 void Cpu::report_error(const char *msg, const char *location)
 {
@@ -50,8 +52,9 @@ void Cpu::report_error(const char *msg, const char *location)
 }
 
 
-Cpu::Cpu(std::string trace_index_filename)
+Cpu::Cpu(bool with_gdb, std::string trace_index_filename)
 {
+	this->with_gdb = with_gdb;
 	for (unsigned int i = 0; i < 16; i++)
 	{
 		this->regs[i].bind_tracer(&(this->tracer));
@@ -106,6 +109,68 @@ void Cpu::write_register(unsigned int reg_idx, uint32_t value)
 }
 
 
+uint32_t Cpu::read_register(unsigned int reg_idx)
+{
+	uint32_t res;
+	if (reg_idx < 16)
+	{
+		res = this->regs[reg_idx].read();
+	}
+	else
+	{
+		this->report_error("reg_idx must be < 16", "Cpu::read_register()");
+	}
+	return res;
+}
+
+
+uint32_t Cpu::read_apsr(void)
+{
+	uint32_t apsr = (this->alu.get_n() << 31) |
+	                (this->alu.get_z() << 30) |
+	                (this->alu.get_c() << 29) |
+	                (this->alu.get_v() << 28) |
+	                (this->alu.get_q() << 27);
+	return apsr;
+}
+
+
+void Cpu::write8_ram(unsigned int addr, uint8_t value)
+{
+	this->ram.write8(addr, value);
+}
+
+
+void Cpu::write16_ram(unsigned int addr, uint16_t value)
+{
+	this->ram.write16(addr, value);
+}
+
+
+void Cpu::write32_ram(unsigned int addr, uint32_t value)
+{
+	this->ram.write32(addr, value);
+}
+
+
+uint8_t Cpu::read8_ram(unsigned int addr)
+{
+	return this->ram.read8(addr);
+}
+
+
+uint8_t Cpu::read16_ram(unsigned int addr)
+{
+	return this->ram.read16(addr);
+}
+
+
+uint8_t Cpu::read32_ram(unsigned int addr)
+{
+	return this->ram.read32(addr);
+}
+
+
 void Cpu::dump_memory(unsigned int start, unsigned int len)
 {
 	this->ram.dump(start, len);
@@ -156,6 +221,7 @@ uint32_t Cpu::generate_modified_immediate(uint16_t ins16, uint16_t ins16_b)
 	}
 	return y;
 }
+
 
 uint32_t Cpu::decode_imm_shift(unsigned int op, unsigned int imm, unsigned int s, uint32_t a)
 {
@@ -309,10 +375,11 @@ unsigned int Cpu::conditional_branch(unsigned int cond, int32_t offset, bool is_
 }
 
 
-
-
+/* return -1 if executed a breakpoint (BKPT) instruction */
 int Cpu::step(void)
 {
+	int status = 0; /* returning 0 by default to inform gdb server that we didn't hit a breakpoint */
+
 	/* fetch 1st part */
 	unsigned int p_addr = this->regs[PC].read();
 	uint16_t ins16 = this->ram.read16(p_addr);
@@ -1162,13 +1229,7 @@ int Cpu::step(void)
 		{
 			LOG_TRACE("OP16_BREAKPOINT\n");
 			/* BKPT A6.7.17 */
-			/* ideally, we should build an interface to gdb server, but it's a huge work.
-			   For the moment, let's just dump the registers...
-			 */
-			unsigned int id = GET_FIELD(ins16, 0, 8);
-			fprintf(stderr, "----- breakpoint @0x%08x, ID: 0x%02x\n", p_addr, id);
-			this->dump_regs();
-			p_addr += 2;
+			status = -1; /* returning -1 to inform gdb server that we hit a breakpoint */
 		}
 		else
 		{
@@ -1177,49 +1238,64 @@ int Cpu::step(void)
 	}
 	this->regs[PC].write(p_addr);
 	this->instruction_count++;
-	return 0;
+	return status;
 }
 
 
 unsigned long int Cpu::run(unsigned int from, unsigned int until, unsigned long int limit)
 {
+	/* prepare file for trace index */
 	FILE *trace_index_file;
 	if (this->generate_trace_index == true && this->trace_index_done == false)
 	{
 		trace_index_file = fopen(this->trace_index_filename.c_str(), "w");
 	}
+
+	/* prepare to jump to code */
 	this->regs[LR].write(until);
 	this->regs[PC].write(from);
-	uint32_t p_addr;
-	while (1)
+
+	if (this->with_gdb == true)
 	{
-		p_addr = this->regs[PC].read();
-		if (p_addr == until)
+		Rsp_layer server;
+		server.run(this);
+	}
+	else
+	{
+		uint32_t p_addr;
+		while (1)
 		{
-			break;
-		}
-		this->step();
-#ifdef DEBUG_TRACE
-		this->dump_regs();
-		this->dump_memory(0x0400, 16);
-		this->dump_memory(0x0500, 16);
-		this->dump_memory(8*1024 - 64, 64);
-		printf("0x%08x\n", this->regs[PC].read());
-#endif
-		if (limit != 0 and this->instruction_count == limit)
-		{
-			break;
-		}
-		if (this->generate_trace_index == true && this->trace_index_done == false)
-		{
-			fprintf(trace_index_file, "(%lu, 0x%08x)\n", this->tracer.get_register_write_count(), p_addr);
+			p_addr = this->regs[PC].read();
+			if (p_addr == until)
+			{
+				break;
+			}
+			this->step();
+			#ifdef DEBUG_TRACE
+			this->dump_regs();
+			this->dump_memory(0x0400, 16);
+			this->dump_memory(0x0500, 16);
+			this->dump_memory(8*1024 - 64, 64);
+			printf("0x%08x\n", this->regs[PC].read());
+			#endif
+			if (limit != 0 and this->instruction_count == limit)
+			{
+				break;
+			}
+			if (this->generate_trace_index == true && this->trace_index_done == false)
+			{
+				fprintf(trace_index_file, "(%lu, 0x%08x)\n", this->tracer.get_register_write_count(), p_addr);
+			}
 		}
 	}
+
+	/* close trace index file */
 	if (this->generate_trace_index == true && this->trace_index_done == false)
 	{
 		fclose(trace_index_file);
 		this->trace_index_done = true;
 	}
+
 	return this->instruction_count;
 }
 
@@ -1241,10 +1317,12 @@ void Cpu::copy_array_from_target(uint32_t *buffer, unsigned int len, unsigned in
 	}
 }
 
+
 void Cpu::reset_pwr_trace(void)
 {
 	this->tracer.reset();
 }
+
 
 std::vector<unsigned int> Cpu::get_pwr_trace(void)
 {

@@ -99,8 +99,9 @@ uint8_t Memory::read8(unsigned int addr)
 {
 	if (addr >= MEM_SIZE)
 	{
-		fprintf(stderr, "-- ERROR: reading outside of memory!");
-		std::exit(EXIT_FAILURE);
+		fprintf(stderr, "-- ERROR: reading outside of memory!\n");
+		// std::exit(EXIT_FAILURE); <- gcc might read out of memory
+		return 0;
 	}
 	return this->mem[addr];
 }

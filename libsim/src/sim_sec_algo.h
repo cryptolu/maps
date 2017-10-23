@@ -41,6 +41,7 @@ typedef struct
 	std::string t_test_filename;
 	bool save_traces;
 	unsigned long int n_measure;
+	bool with_gdb;
 } Options;
 
 void check_sec_algo(Options &options);

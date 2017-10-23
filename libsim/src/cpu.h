@@ -68,8 +68,9 @@ class Cpu
 		Memory ram;
 		Tracer tracer;
 		unsigned long int instruction_count;
+		bool with_gdb;
 
-		void report_error(const char *msg, const char *location);
+		void report_error(const char *msg, const char *location) __attribute__ ((noreturn));
 
 		std::string trace_index_filename;
 		bool generate_trace_index;
@@ -83,11 +84,19 @@ class Cpu
 	public:
 		Register regs[16];
 
-		Cpu(std::string trace_index_filename = "");
+		Cpu(bool with_gdb, std::string trace_index_filename = "");
 		~Cpu();
 		void reset(void);
 		int load(const char *filename);
 		void write_register(unsigned int reg_idx, uint32_t value);
+		uint32_t read_register(unsigned int reg_idx);
+		uint32_t read_apsr(void);
+		void write8_ram(unsigned int addr, uint8_t value);
+		void write16_ram(unsigned int addr, uint16_t value);
+		void write32_ram(unsigned int addr, uint32_t value);
+		uint8_t read8_ram(unsigned int addr);
+		uint8_t read16_ram(unsigned int addr);
+		uint8_t read32_ram(unsigned int addr);
 		int step(void);
 		unsigned long int run(unsigned int from, unsigned int until, unsigned long int limit = 0);
 

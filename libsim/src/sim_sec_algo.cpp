@@ -48,11 +48,11 @@
 
 int main(int argc, char *argv[])
 {
-	Options options = {"", "t_test.npy", false, 0};
+	Options options = {"", "t_test.npy", false, 0, false};
 	bool do_test = false;
 	int c;
 
-	while ((c = getopt(argc, argv, "sto:n:i:v")) != -1)
+	while ((c = getopt(argc, argv, "sto:n:i:vg")) != -1)
 	{
 		switch (c)
 		{
@@ -75,14 +75,18 @@ int main(int argc, char *argv[])
 				printf("%s-%s\n", STR(VERSION_MAJOR), STR(VERSION_MINOR));
 				std::exit(EXIT_SUCCESS);
 				break;
+			case 'g':
+				options.with_gdb = true;
+				break;
 			default:
-                fprintf(stderr, "%s -v | [-i <trace_index_file>] [-s] [-o <filename>] [-t | -n <n_measure]>\n", argv[0]);
+                fprintf(stderr, "%s -v | [-i <trace_index_file>] [-s] [-o <filename>] [-t | -n <n_measure]> [-g]\n", argv[0]);
                 fprintf(stderr, "\t-i: generate power trace index\n");
 				fprintf(stderr, "\t-s: save traces\n");
 				fprintf(stderr, "\t-t: test for correctness with test vectors\n");
 				fprintf(stderr, "\t-o: name of .npy file. Default to 't_test.npy'\n");
 				fprintf(stderr, "\t-n: number of measurements\n");
 				fprintf(stderr, "\t-v: print version number and exit\n");
+				fprintf(stderr, "\t-g: wait for gdb connection on port 50007\n");
 				std::exit(EXIT_FAILURE);
 		}
 	}
