@@ -34,8 +34,17 @@
 #include <cstdio>
 #include <cstdlib>
 
+#define USE_ASM_POPCNT
+
 unsigned int bit_count(uint32_t x)
 {
+#ifdef USE_ASM_POPCNT
+	unsigned int count;
+
+	asm("popcnt %1,%0" : "=r"(count) : "rm"(x) : "cc");
+	return count;
+#else
+	#warning("Using C version of popcount")
     unsigned int h = 0;
     uint32_t u = x;
     while (u > 0)
@@ -44,4 +53,5 @@ unsigned int bit_count(uint32_t x)
         u >>= 1;
     }
     return h;
+#endif
 }

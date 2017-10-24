@@ -1270,7 +1270,15 @@ unsigned long int Cpu::run(unsigned int from, unsigned int until, unsigned long 
 			{
 				break;
 			}
-			this->step();
+			if (this->step() == -1)
+			{
+				/* instruction was a breakpoint */
+				fprintf(stderr, "---- Hit breakpoint at address 0x%08x\n", p_addr);
+				this->dump_regs();
+				/* a breakpoint instruction does not increment the PC, but here we are
+				   using the "BKPT" instruction in a different way for debugging */
+				this->regs[PC].write(p_addr + 2);
+			}
 			#ifdef DEBUG_TRACE
 			this->dump_regs();
 			this->dump_memory(0x0400, 16);
