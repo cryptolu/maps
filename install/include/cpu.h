@@ -81,6 +81,7 @@ class Cpu
 		void execute_op32_data_mod_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_stmia(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b);
+		void execute_op32_ldmdb(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_data_shifted_reg(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_data_plain_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b);

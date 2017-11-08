@@ -238,6 +238,10 @@ Step_status Cpu::step(void)
 		{
 			this->execute_op32_stmdb(ins16, ins16_b);
 		}
+		else if (TEST_INS32(OP32_LDMDB))
+		{
+			this->execute_op32_ldmdb(ins16, ins16_b);
+		}
 		else if (TEST_INS32(OP32_DATA_SHIFTED_REG))
 		{
 			this->execute_op32_data_shifted_reg(ins16, ins16_b);
@@ -1003,6 +1007,32 @@ void Cpu::execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b)
 		if (GET_BIT(register_list, i) == 1)
 		{
 			this->ram.write32(d_addr, this->regs[i].read());
+			d_addr += 4;
+		}
+	}
+	if (w == 1)
+	{
+		this->regs[rn].write(d_addr_base);
+	}
+	this->pc += 4;
+}
+
+
+void Cpu::execute_op32_ldmdb(uint16_t ins16, uint16_t ins16_b)
+{
+	/* STMDB A6.7.41/T1 */
+	LOG_TRACE("OP32_LDMDB\n");
+	unsigned int w = GET_BIT(ins16, 5);
+	unsigned int rn = GET_FIELD(ins16, 0, 4);
+	unsigned int register_list = ins16_b;
+	unsigned int register_count = bit_count(register_list);
+	unsigned int d_addr_base = this->regs[rn].read() - 4*register_count;
+	unsigned int d_addr = d_addr_base;
+	for (unsigned int i = 0; i < 15; ++i)
+	{
+		if (GET_BIT(register_list, i) == 1)
+		{
+		    this->regs[i].write(this->ram.read32(d_addr));
 			d_addr += 4;
 		}
 	}

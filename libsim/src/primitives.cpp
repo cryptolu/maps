@@ -241,7 +241,7 @@ void thumb_expand_imm_c(uint32_t *y, uint32_t *c_out, unsigned int imm12, unsign
 	}
 	else
 	{
-		uint32_t unrotated_value = 0xffffffffU | (imm12_7_0 & 0x0000007fU);
+		uint32_t unrotated_value = 0x80U | (imm12_7_0 & 0x0000007fU);
 		ror_c(y, c_out, unrotated_value, (imm12 >> 7) & 0x1f);
 	}
 }
