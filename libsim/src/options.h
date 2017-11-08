@@ -26,16 +26,22 @@
 
 /******************************************************************************
  *
- * sec_algo interface (generic)
+ * options
  *
  ******************************************************************************/
 
-#ifndef __SIM_SEC_ALGO_H__
-#define __SIM_SEC_ALGO_H__
+#ifndef __OPTIONS_H__
+#define __OPTIONS_H__
 
-#include "options.h"
+#include <string>
 
-void check_sec_algo(Options &options);
-void t_test_sec_algo(Options &options);
+typedef struct
+{
+	std::string trace_index_filename;
+	std::string t_test_filename;
+	bool save_traces;
+	unsigned long int n_measure;
+	bool with_gdb;
+} Options;
 
 #endif

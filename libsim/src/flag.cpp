@@ -26,16 +26,21 @@
 
 /******************************************************************************
  *
- * sec_algo interface (generic)
+ * FLAG
  *
  ******************************************************************************/
 
-#ifndef __SIM_SEC_ALGO_H__
-#define __SIM_SEC_ALGO_H__
+#include <cstdint>
 
-#include "options.h"
+#include "flag.h"
 
-void check_sec_algo(Options &options);
-void t_test_sec_algo(Options &options);
+unsigned int compute_n(uint32_t value)
+{
+	return (value >> 31) & 1;
+}
 
-#endif
+
+unsigned int compute_z(uint32_t value)
+{
+	return value == 0 ? 1 : 0;
+}

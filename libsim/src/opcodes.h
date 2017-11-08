@@ -33,6 +33,11 @@
 #ifndef __OPCODES_H__
 #define __OPCODES_H__
 
+/* utils */
+#define TEST_INS16(category) ((ins16 & category##_MASK) == category##_VAL)
+#define TEST_INS32(category) ((ins32 & category##_MASK) == category##_VAL)
+
+/* Differentiate between 16-bit and 32-bit instructions */
 #define OP16_MASK 0xf800
 #define OP16_VAL1 0xe800
 #define OP16_VAL2 0xf000
@@ -76,50 +81,34 @@
 #define OP16_NOP_VAL  0xbf00
 
 /* OP32 */
-#define OP32_LDMIA_MASK 0xffd0
-#define OP32_LDMIA_VAL  0xe890
+#define OP32_LDMIA_MASK 0xffd00000U
+#define OP32_LDMIA_VAL  0xe8900000U
 
-#define OP32_STMIA_MASK 0xffd0
-#define OP32_STMIA_VAL  0xe880
+#define OP32_STMIA_MASK 0xffd00000U
+#define OP32_STMIA_VAL  0xe8800000U
 
-#define OP32_STMDB_MASK 0xffc0
-#define OP32_STMDB_VAL  0xe900
+#define OP32_STMDB_MASK 0xffc00000U
+#define OP32_STMDB_VAL  0xe9000000U
 
-#define OP32_DATA_SHIFTED_REG_MASK 0xfe00
-#define OP32_DATA_SHIFTED_REG_VAL  0xea00
+#define OP32_DATA_SHIFTED_REG_MASK 0xfe000000U
+#define OP32_DATA_SHIFTED_REG_VAL  0xea000000U
 
-#define OP32_DATA_MOD_IMM_MASK 0xfa00
-#define OP32_DATA_MOD_IMM_VAL  0xf000
-#define OP32_DATA_MOD_IMM_MASK_B 0x8000
-#define OP32_DATA_MOD_IMM_VAL_B  0x0000
+#define OP32_DATA_MOD_IMM_MASK 0xfa008000U
+#define OP32_DATA_MOD_IMM_VAL  0xf0000000U
 
-#define OP32_BRANCH_MISC_MASK 0xf800
-#define OP32_BRANCH_MISC_VAL  0xf000
-#define OP32_BRANCH_MISC_MASK_B 0x8000
-#define OP32_BRANCH_MISC_VAL_B  0x8000
+#define OP32_BRANCH_MISC_MASK 0xf8008000U
+#define OP32_BRANCH_MISC_VAL  0xf0008000U
 
-#define OP32_DATA_REG_MASK 0xff00
-#define OP32_DATA_REG_VAL  0xfa00
+#define OP32_DATA_REG_MASK 0xff000000U
+#define OP32_DATA_REG_VAL  0xfa000000U
 
-#define OP32_STR_IMM_MASK 0xfff0
-#define OP32_STR_IMM_VAL  0xf840
-#define OP32_STR_IMM_MASK_B 0x0800
-#define OP32_STR_IMM_VAL_B  0x0800
+#define OP32_STR_IMM_MASK 0xfff00800U
+#define OP32_STR_IMM_VAL  0xf8400800U
 
-#define OP32_LDR_IMM_MASK 0xfff0
-#define OP32_LDR_IMM_VAL  0xf850
-#define OP32_LDR_IMM_MASK_B 0x0800
-#define OP32_LDR_IMM_VAL_B  0x0800
+#define OP32_LDR_IMM_MASK 0xfff00800U
+#define OP32_LDR_IMM_VAL  0xf8500800U
 
-#define OP32_DATA_PLAIN_IMM_MASK 0xfa00
-#define OP32_DATA_PLAIN_IMM_VAL  0xf200
-#define OP32_DATA_PLAIN_IMM_MASK_B 0x8000
-#define OP32_DATA_PLAIN_IMM_VAL_B  0x0000
-
-/* shifts */
-#define OP_LSL 0
-#define OP_LSR 1
-#define OP_ASR 2
-#define OP_ROR 3
+#define OP32_DATA_PLAIN_IMM_MASK 0xfa008000U
+#define OP32_DATA_PLAIN_IMM_VAL  0xf2000000U
 
 #endif

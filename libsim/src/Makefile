@@ -58,9 +58,10 @@ install: libsim.a
 	cp libsim.a $(INSTALL_DIR)/lib
 	cp ../src/cpu.h $(INSTALL_DIR)/include
 	cp ../src/register.h $(INSTALL_DIR)/include
-	cp ../src/alu.h $(INSTALL_DIR)/include
 	cp ../src/tracer.h $(INSTALL_DIR)/include
 	cp ../src/memory.h $(INSTALL_DIR)/include
+	cp ../src/flag.h $(INSTALL_DIR)/include
+	cp ../src/options.h $(INSTALL_DIR)/include
 	cp ../src/npy.h $(INSTALL_DIR)/include
 	cp ../src/t_test.h $(INSTALL_DIR)/include
 	cp ../src/progress_bar.h $(INSTALL_DIR)/include
@@ -74,7 +75,8 @@ OBJS := \
 	tracer.o \
 	register.o \
 	memory.o \
-	alu.o \
+	flag.o \
+	primitives.o \
 	cpu.o \
 	t_test.o \
 	npy.o \

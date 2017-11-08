@@ -85,7 +85,7 @@ void Rsp_layer::run(Cpu *cpu)
 				this->presentation.send_ack();
 				for (unsigned int i = 0; i < 16; ++i)
 				{
-					push_uint32(reply, cpu->regs[i].read());
+					push_uint32(reply, cpu->read_register(i));
 				}
 				break;
 			case 'm': /* read memory */
@@ -135,7 +135,7 @@ void Rsp_layer::run(Cpu *cpu)
 					}
 					else
 					{
-						push_uint32(reply, cpu->regs[reg_idx].read());
+						push_uint32(reply, cpu->read_register(reg_idx));
 					}
 				}
 				break;

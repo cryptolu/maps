@@ -34,6 +34,7 @@
 #define __REGISTER_H__
 
 #include <cstdint>
+#include <string>
 #include "tracer.h"
 
 class Register
@@ -41,11 +42,12 @@ class Register
 	private:
 		uint32_t value;
 		Tracer *tracer_ptr;
-		
+		std::string name;
 
 	public:
 		Register();
 		~Register();
+		void set_name(std::string name);
 		void write(uint32_t val);
 		uint32_t read(void);
 		void bind_tracer(Tracer *ptr);

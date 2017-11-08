@@ -38,6 +38,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <progress_bar.h>
+#include "options.h"
 #include "cpu.h"
 #include "t_test.h"
 #include "npy.h"
@@ -92,7 +93,7 @@ void check_sec_algo(Options &options)
 {
 	std::random_device random_dev;
 	std::mt19937 rnd_gen_uint32(random_dev());
-	Cpu cpu(options.with_gdb, options.trace_index_filename);
+	Cpu cpu(options);
 	uint32_t a = 0xb1a6f5e5;
 	uint32_t b = 0x127cbff6;
 	uint32_t y;
@@ -115,7 +116,7 @@ void check_sec_algo(Options &options)
 
 void t_test_sec_algo(Options &options)
 {
-	Cpu cpu(options.with_gdb, options.trace_index_filename);
+	Cpu cpu(options);
 	Ttest *ttest_ptr = nullptr;
 	std::random_device random_dev;
 	std::mt19937 rnd_gen_uint32(random_dev());

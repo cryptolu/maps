@@ -30,6 +30,11 @@
  *
  ******************************************************************************/
 
+#include <string>
+
+#define DEBUG_TRACE
+#include "debug.h"
+
 #include "register.h"
 #include "utils.h"
 
@@ -37,6 +42,7 @@ Register::Register()
 {
 	this->value = 0;
 	this->tracer_ptr = nullptr;
+	this->name = "";
 }
 
 Register::~Register()
@@ -49,6 +55,12 @@ void Register::write(uint32_t val)
 	unsigned int pwr = bit_count(this->value ^ val);
 	this->value = val;
 	this->tracer_ptr->update(pwr);
+	LOG_TRACE("%s = 0x%08x\n", this->name.c_str(), val);
+}
+
+void Register::set_name(std::string name)
+{
+	this->name = name;
 }
 
 
