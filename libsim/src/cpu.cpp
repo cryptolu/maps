@@ -59,7 +59,11 @@ void Cpu::report_error(const char *msg, const char *location)
 
 Cpu::Cpu(Options &options)
 {
+	/* set up options */
 	this->with_gdb = options.with_gdb;
+	/* set up memory */
+	this->ram.set_size(options.mem_size);
+	/* set up registers */
 	for (unsigned int i = 0; i < 15; i++)
 	{
 		this->regs[i].bind_tracer(&(this->tracer));
@@ -69,6 +73,7 @@ Cpu::Cpu(Options &options)
 	this->reg_a.set_name("RA");
 	this->reg_b.bind_tracer(&(this->tracer));
 	this->reg_b.set_name("RB");
+	/* set up instruction count and trace capabilities */
 	this->instruction_count = 0;
 	this->trace_index_done = false;
 	this->trace_index_filename = options.trace_index_filename;

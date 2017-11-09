@@ -37,11 +37,22 @@
 
 typedef struct
 {
-	std::string trace_index_filename;
-	std::string t_test_filename;
-	bool save_traces;
-	unsigned long int n_measure;
-	bool with_gdb;
+	uint32_t mem_size;                    /* memory size in bytes */
+	std::string trace_index_filename;     /* name of the trace index file */
+	std::string t_test_filename;          /* name of t_test result file */
+	bool save_traces;                     /* select to save measure waveforms (debug only!) */
+	unsigned long int n_measure;          /* number of measurements for t-test */
+	bool with_gdb;                        /* true when connected to GDB server */
 } Options;
+
+const Options default_options =
+{
+	8*1024,
+	"",
+	"t_test.npy",
+	false,
+	0,
+	false
+};
 
 #endif

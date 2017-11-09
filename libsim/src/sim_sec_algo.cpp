@@ -48,7 +48,7 @@
 
 int main(int argc, char *argv[])
 {
-	Options options = {"", "t_test.npy", false, 0, false};
+	Options options = default_options;
 	bool do_test = false;
 	int c;
 

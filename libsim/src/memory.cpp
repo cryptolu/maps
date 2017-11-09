@@ -40,12 +40,32 @@
 Memory::Memory()
 {
 	/* intentionally empty */
+	this->mem = nullptr;
+	this->size = 0;
 }
 
 Memory::~Memory()
 {
 	/* intentionally empty */
+	if (this->mem != nullptr)
+	{
+		delete[] this->mem;
+	}
 }
+
+
+void Memory::set_size(uint32_t size)
+{
+	this->mem = new uint8_t[size];
+	this->size = size;
+}
+
+
+uint32_t Memory::get_size(void)
+{
+	return this->size;
+}
+
 
 void Memory::write32(uint32_t addr, uint32_t val)
 {
@@ -65,7 +85,7 @@ void Memory::write16(uint32_t addr, uint16_t val)
 
 void Memory::write8(uint32_t addr, uint8_t val)
 {
-	if (addr >= MEM_SIZE)
+	if (addr >= this->size)
 	{
 		fprintf(stderr, "-- ERROR: writing outside of memory!");
 		std::exit(EXIT_FAILURE);
@@ -97,7 +117,7 @@ uint16_t Memory::read16(uint32_t addr)
 
 uint8_t Memory::read8(uint32_t addr)
 {
-	if (addr >= MEM_SIZE)
+	if (addr >= this->size)
 	{
 		fprintf(stderr, "-- ERROR: reading outside of memory!\n");
 		// std::exit(EXIT_FAILURE); <- gcc might read out of memory
@@ -148,9 +168,4 @@ void Memory::dump(uint32_t start, uint32_t len)
 			fprintf(stderr, "\n");
 		}
 	}
-}
-
-uint32_t Memory::get_size(void)
-{
-	return MEM_SIZE;
 }
