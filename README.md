@@ -43,3 +43,4 @@ It is best to start and modify an already exisiting simulator. The simulator mus
 1. void check_sec_algo(void): this function applies some test vectors and prints wether the test passes or not.
 2. void t_test_sec_algo(Options &options): this function runs the t_test by generating inputs and collecting traces
 3. a wrapper to call the FW function (that will be simulated). This wrapper (whose signature depends on the FW function) must write the arguments in the simulator memory and set the processor registers accordingly. Then, it starts the simulation. After the simulation, it must copy the results from the simulated memory.
+TEST
