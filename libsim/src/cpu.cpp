@@ -1,3 +1,29 @@
+/*
+ *
+ * University of Luxembourg
+ * Laboratory of Algorithmics, Cryptology and Security (LACS)
+ *
+ * arm_v7m_leakage simulator
+ *
+ * Copyright (C) 2017 University of Luxembourg
+ *
+ * Written in 2017 by Yann Le Corre <yann.lecorre@uni.lu>
+ *
+ * This simulator is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * It is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 /******************************************************************************
  *
  * CPU (alt)
@@ -22,7 +48,6 @@
 #include "debug.h"
 
 #include "rsp_layer.h"
-
 
 
 void Cpu::report_error(const char *msg, const char *location)
@@ -270,6 +295,10 @@ Step_status Cpu::step(void)
 		{
 			this->execute_op32_ldr_imm(ins16, ins16_b);
 		}
+		else if (TEST_INS32(OP32_LD_LITERAL_POOL))
+		{
+			this->execute_op32_ld_literal_pool(ins16, ins16_b);
+		}
 		else
 		{
 			this->report_error("unsupported 32-bit instruction", "Cpu::step()");
@@ -317,6 +346,10 @@ Step_status Cpu::step(void)
 		else if (TEST_INS16(OP16_COND_BRANCH))
 		{
 			this->execute_op16_cond_branch(ins16);
+		}
+		else if (TEST_INS16(OP16_LD_LITERAL_POOL))
+		{
+			this->execute_op16_ld_literal_pool(ins16);
 		}
 		else if (TEST_INS16(OP16_NOP))
 		{
@@ -932,6 +965,21 @@ void Cpu::execute_op16_cond_branch(uint16_t ins16)
 }
 
 
+void Cpu::execute_op16_ld_literal_pool(uint16_t ins16)
+{
+	/* LDR (literal pool) A6.7.43/T1 */
+	LOG_TRACE("OP16_LD_LITERAL_POOL\n");
+	unsigned int rt = GET_FIELD(ins16, 8, 3);
+	unsigned int imm8 = GET_FIELD(ins16, 0, 8);
+	uint32_t imm32 = (imm8 << 2);
+	unsigned int base = (this->pc & 0xfffffffcU) + 4;
+	unsigned int addr = base + imm32;
+	uint32_t data = this->ram.read32(addr);
+	this->regs[rt].write(data);
+	this->pc += 2;
+}
+
+
 /******************************************************************************
  * 32-bit instructions
  ******************************************************************************/
@@ -1360,4 +1408,26 @@ void Cpu::execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b)
 	}
 	this->regs[rt].write(data);
 	this->pc += 4;
+}
+
+
+void Cpu::execute_op32_ld_literal_pool(uint16_t ins16, uint16_t ins16_b)
+{
+	/* LDR (literal pool) A6.7.43/T2 */
+	LOG_TRACE("OP32_LD_LITERAL_POOL\n");
+	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
+	unsigned int imm32 = GET_FIELD(ins16_b, 0, 12);
+	unsigned int u = GET_BIT(ins16, 7);
+	unsigned int base = (this->pc & 0xfffffffcU) + 4;
+	unsigned int addr = (u == 1) ? base + imm32 : base - imm32;
+	uint32_t data = this->ram.read32(addr);
+	if (rt == 15)
+	{
+		this->pc = data;
+	}
+	else
+	{
+		this->regs[rt].write(data);
+		this->pc += 4;
+	}
 }

@@ -32,7 +32,7 @@
 
 #include <string>
 
-#define DEBUG_TRACE
+//#define DEBUG_TRACE
 #include "debug.h"
 
 #include "register.h"

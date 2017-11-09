@@ -1,3 +1,29 @@
+/*
+ *
+ * University of Luxembourg
+ * Laboratory of Algorithmics, Cryptology and Security (LACS)
+ *
+ * arm_v7m_leakage simulator
+ *
+ * Copyright (C) 2017 University of Luxembourg
+ *
+ * Written in 2017 by Yann Le Corre <yann.lecorre@uni.lu>
+ *
+ * This simulator is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * It is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 /******************************************************************************
  *
  * CPU (alt)
@@ -77,6 +103,7 @@ class Cpu
 		void execute_op16_nop(void);
 		void execute_op16_breakpoint(uint16_t ins16);
 		void execute_op16_cond_branch(uint16_t ins16);
+		void execute_op16_ld_literal_pool(uint16_t ins16);
 		void execute_op32_ldmia(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_data_mod_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_stmia(uint16_t ins16, uint16_t ins16_b);
@@ -88,6 +115,7 @@ class Cpu
 		void execute_op32_branch_misc(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b);
+		void execute_op32_ld_literal_pool(uint16_t ins16, uint16_t ins16_b);
 
 	public:
 		Cpu(Options &options);
