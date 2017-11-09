@@ -42,21 +42,22 @@
 
 
 #define SEC_AND_(r_mval, r_mask, x_mval, x_mask, y_mask, y_mval, temp) \
-	mov temp, 0                                                   \n\t /* correct leakage */ \
-	mov r_mask, 0                                                 \n\t /* correct lekage */ \
     and r_mval, x_mval, y_mval                                    \n\t \
+    mov temp, 0                                                   /* prevent HD leakage */ \n\t \
     orn temp, x_mval, y_mask                                      \n\t \
     eor r_mval, r_mval, temp                                      \n\t \
+    mov r_mask, 0                                                   /* prevent HD leakage */ \n\t \
     and r_mask, x_mask, y_mval                                    \n\t \
-	mov temp, 0                                                   \n\t /* correct leakage */ \
+    mov temp, 0                                                   /* prevent HD leakage */ \n\t \
     orn temp, x_mask, y_mask                                      \n\t \
     eor r_mask, r_mask, temp                                      \n\t
 
 #define SEC_AND_IN_PLACE_(r_mask, x_mval, x_mask, y_mask, y_mval, temp) \
+    mov temp, 0                                                   /* prevent HD leakage */ \n\t \
     and temp, x_mval, y_mval                                       \n\t \
     orn x_mval, x_mval, y_mask                                     \n\t \
     eor x_mval, x_mval, temp                                       \n\t \
-	mov temp, 0                                                    \n\t /* correct leakage */ \
+    mov temp, 0                                                   /* prevent HD leakage */ \n\t \
     and temp, x_mask, y_mval                                       \n\t \
     orn r_mask, x_mask, y_mask                                     \n\t \
     eor r_mask, r_mask, temp                                       \n\t
@@ -76,53 +77,41 @@
     mvn x_mval, x_mval      \n\t
 
 #define SEC_SHIFT_1S_1_ITERATION_(r_mval, r_mask, x_mval, x_mask, temp) \
-    lsl temp, x_mval, CV1                                          \n\t \
-    orr temp, temp, CV1                                            \n\t \
-                                                                        \
-    eor r_mval, r_mask, temp                                       \n\t \
-    lsl temp, x_mask, CV1                                          \n\t \
-    eor r_mval, r_mval, temp                                       \n\t
+    lsl r_mval, x_mval, CV1                                        \n\t \
+    orr r_mval, r_mval, CV1                                        \n\t \
+    lsl r_mask, x_mask, CV1                                        \n\t
 
 #define SEC_SHIFT_1S_2_ITERATION_(r_mval, r_mask, x_mval, x_mask, temp) \
-    lsl temp, x_mval, CV2                                          \n\t \
-    orr temp, temp, CV3                                            \n\t \
-                                                                        \
-    eor r_mval, r_mask, temp                                       \n\t \
-    lsl temp, x_mask, CV2                                          \n\t \
-    eor r_mval, r_mval, temp                                       \n\t
+    lsl r_mval, x_mval, CV2                                        \n\t \
+    orr r_mval, r_mval, CV3                                        \n\t \
+    lsl r_mask, x_mask, CV2                                        \n\t
 
 #define SEC_SHIFT_1S_3_ITERATION_(r_mval, r_mask, x_mval, x_mask, temp) \
-    lsl temp, x_mval, CV4                                          \n\t \
-    orr temp, temp, CV15                                           \n\t \
-                                                                        \
-    eor r_mval, r_mask, temp                                       \n\t \
-    lsl temp, x_mask, CV4                                          \n\t \
-    eor r_mval, r_mval, temp                                       \n\t
+    lsl r_mval, x_mval, CV4                                        \n\t \
+    orr r_mval, r_mval, CV15                                       \n\t \
+    lsl r_mask, x_mask, CV4                                        \n\t
 
 #define SEC_SHIFT_1S_4_ITERATION_(r_mval, r_mask, x_mval, x_mask, temp) \
-    lsl temp, x_mval, CV8                                          \n\t \
-    orr temp, temp, CV255                                          \n\t \
-                                                                        \
-    eor r_mval, r_mask, temp                                       \n\t \
-    lsl temp, x_mask, CV8                                          \n\t \
-    eor r_mval, r_mval, temp                                       \n\t
+    lsl r_mval, x_mval, CV8                                        \n\t \
+    orr r_mval, r_mval, CV255                                      \n\t \
+    lsl r_mask, x_mask, CV8                                        \n\t
 
 #define SEC_SHIFT_1S_5_ITERATION_(r_mval, r_mask, x_mval, x_mask, temp) \
     lsl r_mval, x_mval, CV16                                       \n\t \
     ldr temp, =CV65535                                             \n\t \
     orr r_mval, r_mval, temp                                       \n\t \
-                                                                        \
-    eor r_mval, r_mask, r_mval                                     \n\t \
-    lsl temp, x_mask, CV16                                         \n\t \
-    eor r_mval, r_mval, temp                                       \n\t
+    lsl r_mask, x_mask, CV16                                       \n\t
 
 
 #define SEC_OR_IN_PLACE_(r_mask, x_mval, x_mask, y_mask, y_mval, temp) \
+    mov temp, 0                                                   /* prevent HD leakage */ \n\t \
     orr temp, x_mval, y_mask                                      \n\t \
     and x_mval, x_mval, y_mval                                    \n\t \
     eor x_mval, x_mval, temp                                      \n\t \
                                                                        \
+    mov temp, 0                                                   /* prevent HD leakage */ \n\t \
     orr temp, x_mask, y_mval                                      \n\t \
+    mov r_mask, 0                                                   /* prevent HD leakage */ \n\t \
     and r_mask, x_mask, y_mask                                    \n\t \
     eor r_mask, r_mask, temp                                      \n\t
 

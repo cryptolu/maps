@@ -40,8 +40,7 @@ void sec_rectangle_v07(uint16_t *buffer, uint32_t rk_masked)
 
 
         /* set the pointer to round keys */
-        "add %[rk_masked], %[rk_masked], #408" "\n\t" // TODO
-        //"add %[rk_masked], %[rk_masked], #64" "\n\t"
+        "add %[rk_masked], %[rk_masked], #408" "\n\t"
 
 
         /* initialize loop counter */
@@ -106,6 +105,7 @@ void sec_rectangle_v07(uint16_t *buffer, uint32_t rk_masked)
         "orr %[buffer], r2, r9" "\n\t"
         "eor r10, r10, %[buffer]" "\n\t"
 
+        "mov %[buffer], 0" "\n\t" /* prevent HD leakage */
         "orr %[buffer], r6, r5" "\n\t"
         "eor r10, r10, %[buffer]" "\n\t"
 
@@ -127,12 +127,15 @@ void sec_rectangle_v07(uint16_t *buffer, uint32_t rk_masked)
         "and r11, r2, r10" "\n\t"
         "eor r11, r12, r11" "\n\t"
 
+        "mov %[buffer], 0" "\n\t" /* prevent HD leakage */
         "and %[buffer], r2, r14" "\n\t"
         "eor r11, r11, %[buffer]" "\n\t"
 
+        "mov %[buffer], 0" "\n\t" /* prevent HD leakage */
         "and %[buffer], r6, r10" "\n\t"
         "eor r11, r11, %[buffer]" "\n\t"
 
+        "mov %[buffer], 0" "\n\t" /* prevent HD leakage */
         "and %[buffer], r6, r14" "\n\t"
         "eor r11, r11, %[buffer]" "\n\t"
 
@@ -148,12 +151,14 @@ void sec_rectangle_v07(uint16_t *buffer, uint32_t rk_masked)
 
 
         /*"orn r7, r6, r3" "\n\t"*/ /* (r11, r12) */
+        "mov %[buffer], 0" "\n\t" /* prevent HD leakage */
         "bic %[buffer], r10, r3" "\n\t"
         "eor r11, r12, %[buffer]" "\n\t"
 
         "orr %[buffer], r10, r7" "\n\t"
         "eor r11, r11, %[buffer]" "\n\t"
 
+        "mov %[buffer], 0" "\n\t" /* prevent HD leakage */
         "orn %[buffer], r14, r3" "\n\t"
         "eor r11, r11, %[buffer]" "\n\t"
 
@@ -169,11 +174,13 @@ void sec_rectangle_v07(uint16_t *buffer, uint32_t rk_masked)
 
         /*"orn r7, r5, r3" "\n\t"*/ /* (r11, r12) */
         "bic %[buffer], r5, r3" "\n\t"
+        "mov r11, 0" "\n\t" /* prevent HD leakage */
         "eor r11, r12, %[buffer]" "\n\t"
 
         "orr %[buffer], r5, r7" "\n\t"
         "eor r11, r11, %[buffer]" "\n\t"
 
+        "mov %[buffer], 0" "\n\t" /* prevent HD leakage */
         "orn %[buffer], r9, r3" "\n\t"
         "eor r11, r11, %[buffer]" "\n\t"
 
@@ -199,16 +206,19 @@ void sec_rectangle_v07(uint16_t *buffer, uint32_t rk_masked)
 
 	"pop {%[buffer]}" CR
 	/* load key */
+	"ldm %[rk_masked], {r10, r11}" CR
+	"eor r6, r6, r10" CR
+	"eor r7, r7, r10, lsr #16" CR
+	"eor r8, r8, r11" CR
+	"eor r9, r9, r11, lsr #16" CR
+	
+	"sub r1, r1, #8" "\n\t"
+	
 	"ldm %[rk_masked]!, {r10, r11}" CR
 	"eor r2, r2, r10" CR
 	"eor r3, r3, r10, lsr #16" CR
 	"eor r4, r4, r11" CR
 	"eor r5, r5, r11, lsr #16" CR
-	"ldm %[rk_masked]!, {r10, r11}" CR
-	"eor r6, r6, r10" CR
-	"eor r7, r7, r10, lsr #16" CR
-	"eor r8, r8, r11" CR
-	"eor r9, r9, r11, lsr #16" CR
 	/* store results */
 	"bfi r2, r3, #16, #16" CR
 	"bfi r4, r5, #16, #16" CR

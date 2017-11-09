@@ -29,7 +29,7 @@ N_MEASURE ?= 10000
 vpath %.c ../src
 vpath %.h ../src
 
-DIR := /home/yann/tools/launchpad/current/bin
+DIR := /usr/bin
 GCC := $(DIR)/arm-none-eabi-gcc
 OBJDUMP:= $(DIR)/arm-none-eabi-objdump
 OBJCOPY:= $(DIR)/arm-none-eabi-objcopy

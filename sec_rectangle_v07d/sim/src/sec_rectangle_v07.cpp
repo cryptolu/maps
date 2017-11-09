@@ -60,7 +60,7 @@ void load(Cpu *cpu)
 template <typename T>
 void mask(std::mt19937 &rnd_gen_uint32, T x, T *v, T *m)
 {
-	*m = 0; // rnd_gen_uint32();
+	*m = rnd_gen_uint32();
 	*v = x ^ *m;
 }
 
@@ -73,8 +73,8 @@ unsigned long int sec_rectangle_v07_wrapper(std::mt19937 &rnd_gen_uint32, Cpu *c
 	mask(rnd_gen_uint32, rows[1], buffer + 1, buffer + 5);
 	mask(rnd_gen_uint32, rows[2], buffer + 2, buffer + 6);
 	mask(rnd_gen_uint32, rows[3], buffer + 3, buffer + 7);
-	buffer[8] = 0; // rnd_gen_uint32();
-	buffer[9] = 0; // rnd_gen_uint32();
+	buffer[8] = rnd_gen_uint32();
+	buffer[9] = rnd_gen_uint32();
 
 	cpu->copy_array_to_target((uint32_t *)buffer, 8, TARGET_BUFFER_ADDR);
 	cpu->write_register(R0, TARGET_BUFFER_ADDR);

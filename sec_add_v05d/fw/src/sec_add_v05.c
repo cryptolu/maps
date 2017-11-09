@@ -63,6 +63,7 @@ void sec_add_v05(uint32_t *a_buf, uint32_t b_buf)
         /* h(mval, mask) = (r10, r7) */
         SEC_SHIFT_1S(r10, r7, r9, r3, r12, r2, r4)
 
+        "mov r6, 0" "\n\t" /* prevent HD leakage */
         /* u(mval, mask) = (r11, r6) */
         SEC_AND(r11, r6, r8, r5, r10, r7, r2)
 
@@ -112,7 +113,7 @@ void sec_add_v05(uint32_t *a_buf, uint32_t b_buf)
         "eor r9, r9, r3" "\r\n"
         "eor r9, r9, r7" "\r\n"
 
-
+        "mov r2, 0" "\n\t" /* prevent HD leakage */
         "pop {r2, r4}" "\n\t"
 
 

@@ -87,11 +87,14 @@
     lsl r_mask, x_mask, val                                         \n\t
 
 #define SEC_OR_IN_PLACE_(r_mask, x_mval, x_mask, y_mask, y_mval, temp) \
+    mov temp, 0                                                           /* prevent HD leakage */  \n\t \
     orr temp, x_mval, y_mask                                      \n\t \
     and x_mval, x_mval, y_mval                                    \n\t \
     eor x_mval, x_mval, temp                                      \n\t \
                                                                        \
+    mov temp, 0                                                           /* prevent HD leakage */  \n\t \
     orr temp, x_mask, y_mval                                      \n\t \
+    mov r_mask, 0                                                           /* prevent HD leakage */  \n\t \
     and r_mask, x_mask, y_mask                                    \n\t \
     eor r_mask, r_mask, temp                                      \n\t
 
