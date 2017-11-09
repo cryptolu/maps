@@ -39,8 +39,6 @@ void sec_add_v12(uint32_t *a_buf, uint32_t b_buf)
 	"ldm %[b_buf], {r4, r5, r6, r7}" CR
 
 
-
-
         /* y(mval, mask) = (r4, r5) */
         SEC_NOT(r4, r5)
 
@@ -48,7 +46,7 @@ void sec_add_v12(uint32_t *a_buf, uint32_t b_buf)
         SEC_XOR(r8, r2, r3, r4, r5)
 
         /* g(mval, mask) = (r9, r6) */
-        //SEC_AND(r9, r6, r2, r3, r4, r5, r12) // TODO
+        SEC_AND(r9, r6, r2, r3, r4, r5, r12)
 
         /* g(mval, mask) = (r9, r3) */
         "eor r9, r9, r3" "\r\n"
@@ -183,13 +181,32 @@ void sec_add_v12(uint32_t *a_buf, uint32_t b_buf)
         /* h(mval, mask) = (r10, r7) */
         SEC_SHIFT_1S_5_ITERATION(r10, r7, r9, r3, r2)
 
+        "mov r12, 0" "\n\t" /* prevent HD leakage*/
+
         /* u(mval, mask) = (r11, r5) */
         SEC_AND(r11, r5, r8, r3, r10, r7, r12)
 
         /* g(mval, mask) = (r9, r7) */
-        SEC_OR_IN_PLACE(r7, r9, r3, r11, r5, r2)
+//        SEC_OR_IN_PLACE(r7, r9, r3, r11, r5, r2)
+// SEC_OR_IN_PLACE_(r_mask=r7, x_mval=r9, x_mask=r3, y_mask=r11, y_mval=r5, temp=r2) copied here from macros
+    "orr r2, r9, r11" "\n\t"
+
+    "and r9, r9, r5" "\n\t"
+    "eor r9, r9, r7" "\n\t"
+
+    "eor r9, r9, r2" "\n\t"
+
+    "mov r2, 0" "\n\t" /* prevent HD leakage */
+    "orr r2, r3, r5" "\n\t"
+    "eor r9, r9, r2" "\n\t"
+
+    "and r2, r3, r11" "\n\t"
+    "eor r9, r9, r2" "\n\t"
 
 
+
+
+        "mov r2, 0" "\n\t" /* prevent HD leakage */
         "pop {r2}" "\n\t"
 
 

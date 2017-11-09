@@ -41,11 +41,12 @@
 #include "cpu.h"
 #include "t_test.h"
 #include "npy.h"
+#include "options.h"
 #include "sim_sec_algo.h"
 
 
-#define TARGET_A_BUF_ADDR 0x0400
-#define TARGET_B_BUF_ADDR 0x0500
+#define TARGET_A_BUF_ADDR 0x0500
+#define TARGET_B_BUF_ADDR 0x0700
 
 void load(Cpu *cpu)
 {

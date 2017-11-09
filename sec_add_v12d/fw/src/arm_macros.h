@@ -53,8 +53,9 @@
 
 
 #define SEC_AND_(r_mval, r_mask, x_mval, x_mask, y_mask, y_mval, temp) \
-    /*mov temp, 0*/                                                   \n\t /* prevent HD leakage */ \
+    mov temp, 0                                                   \n\t /* prevent HD leakage */ \
     and temp, x_mval, y_mval                                      \n\t \
+    mov r_mval, 0                                                   \n\t /* prevent HD leakage */ \
     eor r_mval, r_mask, temp                                      \n\t \
                                                                        \
     mov temp, 0                                                   \n\t /* prevent HD leakage */ \
@@ -93,6 +94,7 @@
     eor r_mval, r_mval, y_mask                      \n\t
 
 #define SEC_OR_IN_PLACE_(r_mask, x_mval, x_mask, y_mask, y_mval, temp) \
+    mov temp, 0                                                   \n\t /* precent HD leakage */ \
     orr temp, x_mval, y_mask                                      \n\t \
                                                                   \n\t \
     and x_mval, x_mval, y_mval                                    \n\t \
@@ -100,6 +102,7 @@
                                                                        \
     eor x_mval, x_mval, temp                                      \n\t \
                                                                        \
+    mov temp, 0                                                   \n\t /* precent HD leakage */ \
     orr temp, x_mask, y_mval                                      \n\t \
     eor x_mval, x_mval, temp                                      \n\t \
                                                                        \
@@ -145,6 +148,7 @@
     orr temp, temp, CV1                                            \n\t \
                                                                         \
     eor r_mval, r_mask, temp                                       \n\t \
+    mov temp, 0                                                   \n\t /* prevent HD leakage */ \
     lsl temp, x_mask, CV1                                          \n\t \
     eor r_mval, r_mval, temp                                       \n\t
 
@@ -154,6 +158,7 @@
                                                                         \
     mov r_mval, 0                                                   \n\t /* prevent HD leakage */ \
     eor r_mval, r_mask, temp                                       \n\t \
+    mov temp, 0                                                   \n\t /* prevent HD leakage */ \
     lsl temp, x_mask, CV2                                          \n\t \
     eor r_mval, r_mval, temp                                       \n\t
 
@@ -161,7 +166,9 @@
     lsl temp, x_mval, CV4                                          \n\t \
     orr temp, temp, CV15                                           \n\t \
                                                                         \
+    mov r_mval, 0                                                   \n\t /* prevent HD leakage */ \
     eor r_mval, r_mask, temp                                       \n\t \
+    mov temp, 0                                                   \n\t /* prevent HD leakage */ \
     lsl temp, x_mask, CV4                                          \n\t \
     eor r_mval, r_mval, temp                                       \n\t
 
@@ -169,7 +176,9 @@
     lsl temp, x_mval, CV8                                          \n\t \
     orr temp, temp, CV255                                          \n\t \
                                                                         \
+    mov r_mval, 0                                                   \n\t /* prevent HD leakage */ \
     eor r_mval, r_mask, temp                                       \n\t \
+    mov temp, 0                                                   \n\t /* prevent HD leakage */ \
     lsl temp, x_mask, CV8                                          \n\t \
     eor r_mval, r_mval, temp                                       \n\t
 

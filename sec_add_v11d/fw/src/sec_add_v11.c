@@ -19,7 +19,7 @@
 	- [3] random b
    Outputs: in a_buf[0] (value) and [1] (mask)
  */
-void sec_add_v01(uint32_t *a_buf, uint32_t b_buf)
+void sec_add_v11(uint32_t *a_buf, uint32_t b_buf)
 {
 	asm volatile (
 	/* Registers allocation:
