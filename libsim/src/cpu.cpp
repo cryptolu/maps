@@ -153,43 +153,43 @@ uint32_t Cpu::read_apsr(void)
 }
 
 
-void Cpu::write8_ram(unsigned int addr, uint8_t value)
+void Cpu::write8_ram(uint32_t addr, uint8_t value)
 {
 	this->ram.write8(addr, value);
 }
 
 
-void Cpu::write16_ram(unsigned int addr, uint16_t value)
+void Cpu::write16_ram(uint32_t addr, uint16_t value)
 {
 	this->ram.write16(addr, value);
 }
 
 
-void Cpu::write32_ram(unsigned int addr, uint32_t value)
+void Cpu::write32_ram(uint32_t addr, uint32_t value)
 {
 	this->ram.write32(addr, value);
 }
 
 
-uint8_t Cpu::read8_ram(unsigned int addr)
+uint8_t Cpu::read8_ram(uint32_t addr)
 {
 	return this->ram.read8(addr);
 }
 
 
-uint8_t Cpu::read16_ram(unsigned int addr)
+uint8_t Cpu::read16_ram(uint32_t addr)
 {
 	return this->ram.read16(addr);
 }
 
 
-uint8_t Cpu::read32_ram(unsigned int addr)
+uint8_t Cpu::read32_ram(uint32_t addr)
 {
 	return this->ram.read32(addr);
 }
 
 
-void Cpu::dump_memory(unsigned int start, unsigned int len)
+void Cpu::dump_memory(uint32_t start, uint32_t len)
 {
 	this->ram.dump(start, len);
 }
@@ -210,7 +210,7 @@ void Cpu::dump_regs(void)
 }
 
 
-void Cpu::copy_array_to_target(uint32_t *buffer, unsigned int len, unsigned int target_addr)
+void Cpu::copy_array_to_target(uint32_t *buffer, unsigned int len, uint32_t target_addr)
 {
 	for (unsigned int i = 0; i < len; ++i)
 	{
@@ -219,7 +219,7 @@ void Cpu::copy_array_to_target(uint32_t *buffer, unsigned int len, unsigned int 
 }
 
 
-void Cpu::copy_array_from_target(uint32_t *buffer, unsigned int len, unsigned int target_addr)
+void Cpu::copy_array_from_target(uint32_t *buffer, unsigned int len, uint32_t target_addr)
 {
 	for (unsigned int i = 0; i < len; ++i)
 	{
@@ -370,7 +370,7 @@ Step_status Cpu::step(void)
 }
 
 
-unsigned long int Cpu::run(unsigned int from, unsigned int until, unsigned long int limit)
+unsigned long int Cpu::run(uint32_t from, uint32_t until, unsigned long int limit)
 {
 	/* prepare file for trace index */
 	FILE *trace_index_file;
@@ -620,12 +620,12 @@ void Cpu::execute_op16_pushm(uint16_t ins16)
 	LOG_TRACE("OP16_PUSHM\n");
 	unsigned int m = GET_BIT(ins16, 8);
 	uint8_t register_list = GET_FIELD(ins16, 0, 8);
-	unsigned int d_addr_base = this->regs[SP].read() - 4*bit_count(register_list);
+	uint32_t d_addr_base = this->regs[SP].read() - 4*bit_count(register_list);
 	if (m == 1)
 	{
 		d_addr_base -= 4;
 	}
-	unsigned int d_addr = d_addr_base;
+	uint32_t d_addr = d_addr_base;
 	for (unsigned int i = 0; i < 8; i++)
 	{
 		if (GET_BIT(register_list, i) == 1)
@@ -650,7 +650,7 @@ void Cpu::execute_op16_popm(uint16_t ins16)
 	LOG_TRACE("OP16_POPM\n");
 	unsigned int p = GET_BIT(ins16, 8);
 	unsigned int register_list = GET_FIELD(ins16, 0, 8);
-	unsigned int d_addr = this->regs[SP].read();
+	uint32_t d_addr = this->regs[SP].read();
 	for (unsigned int i = 0; i < 8; ++i)
 	{
 		if (GET_BIT(register_list, i) == 1)
@@ -699,7 +699,7 @@ void Cpu::execute_op16_st_reg_sp_rel(uint16_t ins16)
 	LOG_TRACE("OP16_ST_REG_SP_REL\n");
 	uint32_t imm8 = GET_FIELD(ins16, 0, 8) << 2;
 	unsigned int rt = GET_FIELD(ins16, 8, 3);
-	unsigned int d_addr = this->regs[SP].read() + imm8;
+	uint32_t d_addr = this->regs[SP].read() + imm8;
 	this->ram.write32(d_addr, this->regs[rt].read());
 	this->pc += 2;
 }
@@ -711,7 +711,7 @@ void Cpu::execute_op16_ld_reg_sp_rel(uint16_t ins16)
 	LOG_TRACE("OP16_LD_REG_SP_REL\n");
 	uint32_t imm8 = GET_FIELD(ins16, 0, 8) << 2;
 	unsigned int rt = GET_FIELD(ins16, 8, 3);
-	unsigned int d_addr = this->regs[SP].read() + imm8;
+	uint32_t d_addr = this->regs[SP].read() + imm8;
 	this->regs[rt].write(this->ram.read32(d_addr));
 	this->pc += 2;
 }
@@ -922,7 +922,7 @@ void Cpu::execute_op16_ldmia(uint16_t ins16)
 	LOG_TRACE("OP16_LDMIA\n");
 	unsigned int rn = GET_FIELD(ins16, 8, 3);
 	unsigned int register_list = GET_FIELD(ins16, 0, 8);
-	unsigned int d_addr = this->regs[rn].read();
+	uint32_t d_addr = this->regs[rn].read();
 	for (unsigned int i = 0; i < 8; i++)
 	{
 		if (GET_BIT(register_list, i) == 1)
@@ -972,8 +972,8 @@ void Cpu::execute_op16_ld_literal_pool(uint16_t ins16)
 	unsigned int rt = GET_FIELD(ins16, 8, 3);
 	unsigned int imm8 = GET_FIELD(ins16, 0, 8);
 	uint32_t imm32 = (imm8 << 2);
-	unsigned int base = (this->pc & 0xfffffffcU) + 4;
-	unsigned int addr = base + imm32;
+	uint32_t base = (this->pc & 0xfffffffcU) + 4;
+	uint32_t addr = base + imm32;
 	uint32_t data = this->ram.read32(addr);
 	this->regs[rt].write(data);
 	this->pc += 2;
@@ -990,7 +990,7 @@ void Cpu::execute_op32_ldmia(uint16_t ins16, uint16_t ins16_b)
 	unsigned int w = GET_BIT(ins16, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int register_list = ins16_b;
-	unsigned int d_addr = this->regs[rn].read();
+	uint32_t d_addr = this->regs[rn].read();
 	unsigned int p = GET_BIT(ins16_b, 15);
 	for (unsigned int i = 1; i < 15; ++i)
 	{
@@ -1023,7 +1023,7 @@ void Cpu::execute_op32_stmia(uint16_t ins16, uint16_t ins16_b)
 	unsigned int w = GET_BIT(ins16, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int register_list = ins16_b;
-	unsigned int d_addr = this->regs[rn].read();
+	uint32_t d_addr = this->regs[rn].read();
 	for (unsigned int i = 0; i < 15; i++)
 	{
 		if (GET_BIT(register_list, i) == 1)
@@ -1048,8 +1048,8 @@ void Cpu::execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b)
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int register_list = ins16_b;
 	unsigned int register_count = bit_count(register_list);
-	unsigned int d_addr_base = this->regs[rn].read() - 4*register_count;
-	unsigned int d_addr = d_addr_base;
+	uint32_t d_addr_base = this->regs[rn].read() - 4*register_count;
+	uint32_t d_addr = d_addr_base;
 	for (unsigned int i = 0; i < 15; ++i)
 	{
 		if (GET_BIT(register_list, i) == 1)
@@ -1074,8 +1074,8 @@ void Cpu::execute_op32_ldmdb(uint16_t ins16, uint16_t ins16_b)
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int register_list = ins16_b;
 	unsigned int register_count = bit_count(register_list);
-	unsigned int d_addr_base = this->regs[rn].read() - 4*register_count;
-	unsigned int d_addr = d_addr_base;
+	uint32_t d_addr_base = this->regs[rn].read() - 4*register_count;
+	uint32_t d_addr = d_addr_base;
 	for (unsigned int i = 0; i < 15; ++i)
 	{
 		if (GET_BIT(register_list, i) == 1)
@@ -1354,8 +1354,8 @@ void Cpu::execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b)
 	unsigned int p = GET_BIT(ins16_b, 10);
 	unsigned int u = GET_BIT(ins16_b, 9);
 	unsigned int w = GET_BIT(ins16_b, 8);
-	unsigned int d_addr = this->regs[rn].read();
-	unsigned int offset_addr;
+	uint32_t d_addr = this->regs[rn].read();
+	uint32_t offset_addr;
 	if (u == 1)
 	{
 		offset_addr = d_addr + imm8;
@@ -1387,8 +1387,8 @@ void Cpu::execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b)
 	unsigned int p = GET_BIT(ins16_b, 10);
 	unsigned int u = GET_BIT(ins16_b, 9);
 	unsigned int w = GET_BIT(ins16_b, 8);
-	unsigned int d_addr = this->regs[rn].read();
-	unsigned int offset_addr;
+	uint32_t d_addr = this->regs[rn].read();
+	uint32_t offset_addr;
 	if (u == 1)
 	{
 		offset_addr = d_addr + imm8;
@@ -1418,8 +1418,8 @@ void Cpu::execute_op32_ld_literal_pool(uint16_t ins16, uint16_t ins16_b)
 	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
 	unsigned int imm32 = GET_FIELD(ins16_b, 0, 12);
 	unsigned int u = GET_BIT(ins16, 7);
-	unsigned int base = (this->pc & 0xfffffffcU) + 4;
-	unsigned int addr = (u == 1) ? base + imm32 : base - imm32;
+	uint32_t base = (this->pc & 0xfffffffcU) + 4;
+	uint32_t addr = (u == 1) ? base + imm32 : base - imm32;
 	uint32_t data = this->ram.read32(addr);
 	if (rt == 15)
 	{

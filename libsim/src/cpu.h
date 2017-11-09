@@ -126,19 +126,19 @@ class Cpu
 		void write_register(unsigned int reg_idx, uint32_t value);
 		uint32_t read_register(unsigned int reg_idx);
 		uint32_t read_apsr(void);
-		void write8_ram(unsigned int addr, uint8_t value);
-		void write16_ram(unsigned int addr, uint16_t value);
-		void write32_ram(unsigned int addr, uint32_t value);
-		uint8_t read8_ram(unsigned int addr);
-		uint8_t read16_ram(unsigned int addr);
-		uint8_t read32_ram(unsigned int addr);
+		void write8_ram(uint32_t addr, uint8_t value);
+		void write16_ram(uint32_t addr, uint16_t value);
+		void write32_ram(uint32_t addr, uint32_t value);
+		uint8_t read8_ram(uint32_t addr);
+		uint8_t read16_ram(uint32_t addr);
+		uint8_t read32_ram(uint32_t addr);
 		Step_status step(void);
-		unsigned long int run(unsigned int from, unsigned int until, unsigned long int limit = -1);
+		unsigned long int run(uint32_t from, uint32_t until, unsigned long int limit = -1);
 
-		void dump_memory(unsigned int start, unsigned int len);
+		void dump_memory(uint32_t start, uint32_t len);
 		void dump_regs(void);
-		void copy_array_to_target(uint32_t *buffer, unsigned int len, unsigned int target_addr);
-		void copy_array_from_target(uint32_t *buffer, unsigned int len, unsigned int target_addr);
+		void copy_array_to_target(uint32_t *buffer, unsigned int len, uint32_t target_addr);
+		void copy_array_from_target(uint32_t *buffer, unsigned int len, uint32_t target_addr);
 		void reset_pwr_trace(void);
 		std::vector<unsigned int> get_pwr_trace(void);
 

@@ -47,7 +47,7 @@ Memory::~Memory()
 	/* intentionally empty */
 }
 
-void Memory::write32(unsigned int addr, uint32_t val)
+void Memory::write32(uint32_t addr, uint32_t val)
 {
 	/* TODO: check addr alignement */
 	this->write8(addr + 0, GET_BYTE(val, 0));
@@ -56,14 +56,14 @@ void Memory::write32(unsigned int addr, uint32_t val)
 	this->write8(addr + 3, GET_BYTE(val, 3));
 }
 
-void Memory::write16(unsigned int addr, uint16_t val)
+void Memory::write16(uint32_t addr, uint16_t val)
 {
 	/* TODO: check addr alignement */
 	this->write8(addr + 0, GET_BYTE(val, 0));
 	this->write8(addr + 1, GET_BYTE(val, 1));
 }
 
-void Memory::write8(unsigned int addr, uint8_t val)
+void Memory::write8(uint32_t addr, uint8_t val)
 {
 	if (addr >= MEM_SIZE)
 	{
@@ -73,7 +73,7 @@ void Memory::write8(unsigned int addr, uint8_t val)
 	this->mem[addr + 0] = val;
 }
 
-uint32_t Memory::read32(unsigned int addr)
+uint32_t Memory::read32(uint32_t addr)
 {
 	/* TODO: check addr alignement */
 	uint32_t ret;
@@ -85,7 +85,7 @@ uint32_t Memory::read32(unsigned int addr)
 	return ret;
 }
 
-uint16_t Memory::read16(unsigned int addr)
+uint16_t Memory::read16(uint32_t addr)
 {
 	/* TODO: check addr alignement */
 	uint16_t ret;
@@ -95,7 +95,7 @@ uint16_t Memory::read16(unsigned int addr)
 	return ret;
 }
 
-uint8_t Memory::read8(unsigned int addr)
+uint8_t Memory::read8(uint32_t addr)
 {
 	if (addr >= MEM_SIZE)
 	{
@@ -131,7 +131,7 @@ int Memory::load(const char *filename)
 	}
 }
 
-void Memory::dump(unsigned int start, unsigned int len)
+void Memory::dump(uint32_t start, uint32_t len)
 {
 	unsigned int addr;
 
@@ -150,7 +150,7 @@ void Memory::dump(unsigned int start, unsigned int len)
 	}
 }
 
-unsigned int Memory::get_size(void)
+uint32_t Memory::get_size(void)
 {
 	return MEM_SIZE;
 }
