@@ -53,6 +53,8 @@
 
 
 #define SEC_AND_(r_mval, r_mask, x_mval, x_mask, y_mask, y_mval, temp) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     mov temp, 0                                                   \n\t /* prevent HD leakage */ \
     and temp, x_mval, y_mval                                      \n\t \
     mov r_mval, 0                                                   \n\t /* prevent HD leakage */ \
@@ -72,6 +74,9 @@
 
 
 #define SEC_AND_IN_PLACE_(r_mask, x_mval, x_mask, y_mask, y_mval, temp1, temp2) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     mov temp1, 0                                                   \n\t /* prevent HD leakage */ \
     and temp1, x_mval, y_mval                                              \n\t \
     mov temp2, 0                                                   \n\t /* prevent HD leakage */ \
@@ -90,11 +95,16 @@
 
 
 #define SEC_XOR_(r_mval, x_mval, x_mask, y_mask, y_mval) \
+    nop                                                           \n\t \
     eor r_mval, x_mval, y_mval                      \n\t \
     eor r_mval, r_mval, y_mask                      \n\t
 
 #define SEC_OR_IN_PLACE_(r_mask, x_mval, x_mask, y_mask, y_mval, temp) \
-    mov temp, 0                                                   \n\t /* prevent HD leakage */ \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    mov temp, 0                                                   \n\t /* precent HD leakage */ \
     orr temp, x_mval, y_mask                                      \n\t \
                                                                   \n\t \
     and x_mval, x_mval, y_mval                                    \n\t \
@@ -102,7 +112,7 @@
                                                                        \
     eor x_mval, x_mval, temp                                      \n\t \
                                                                        \
-    mov temp, 0                                                   \n\t /* prevent HD leakage */ \
+    mov temp, 0                                                   \n\t /* precent HD leakage */ \
     orr temp, x_mask, y_mval                                      \n\t \
     eor x_mval, x_mval, temp                                      \n\t \
                                                                        \
@@ -116,6 +126,11 @@
 //    eor r_mval, r_mval, x_mask, lsl val            \n\t
 
 #define SEC_SHIFT_(r_mval, r_mask, x_mval, x_mask, val, temp) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     lsl temp, x_mval, val                                \n\t \
     eor r_mval, r_mask, temp                             \n\t \
     lsl temp, x_mask, val                                \n\t \
@@ -123,27 +138,64 @@
 
 
 #define SEC_SHIFT_1_ITERATION_(r_mval, r_mask, x_mval, x_mask) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     lsl r_mval, x_mval, CV1                               \n\t \
     lsl r_mask, x_mask, CV1                               \n\t
 
 #define SEC_SHIFT_2_ITERATION_(r_mval, r_mask, x_mval, x_mask) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     lsl r_mval, x_mval, CV2                               \n\t \
     lsl r_mask, x_mask, CV2                               \n\t
 
 #define SEC_SHIFT_3_ITERATION_(r_mval, r_mask, x_mval, x_mask) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     lsl r_mval, x_mval, CV4                               \n\t \
     lsl r_mask, x_mask, CV4                               \n\t
 
 #define SEC_SHIFT_4_ITERATION_(r_mval, r_mask, x_mval, x_mask) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     lsl r_mval, x_mval, CV8                               \n\t \
     lsl r_mask, x_mask, CV8                               \n\t
 
 #define SEC_SHIFT_5_ITERATION_(r_mval, r_mask, x_mval, x_mask) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     lsl r_mval, x_mval, CV16                              \n\t \
     lsl r_mask, x_mask, CV16                              \n\t
 
 
 #define SEC_SHIFT_1S_1_ITERATION_(r_mval, r_mask, x_mval, x_mask, temp) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     lsl temp, x_mval, CV1                                          \n\t \
     orr temp, temp, CV1                                            \n\t \
                                                                         \
@@ -153,6 +205,13 @@
     eor r_mval, r_mval, temp                                       \n\t
 
 #define SEC_SHIFT_1S_2_ITERATION_(r_mval, r_mask, x_mval, x_mask, temp) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     lsl temp, x_mval, CV2                                          \n\t \
     orr temp, temp, CV3                                            \n\t \
                                                                         \
@@ -163,6 +222,13 @@
     eor r_mval, r_mval, temp                                       \n\t
 
 #define SEC_SHIFT_1S_3_ITERATION_(r_mval, r_mask, x_mval, x_mask, temp) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     lsl temp, x_mval, CV4                                          \n\t \
     orr temp, temp, CV15                                           \n\t \
                                                                         \
@@ -173,6 +239,13 @@
     eor r_mval, r_mval, temp                                       \n\t
 
 #define SEC_SHIFT_1S_4_ITERATION_(r_mval, r_mask, x_mval, x_mask, temp) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     lsl temp, x_mval, CV8                                          \n\t \
     orr temp, temp, CV255                                          \n\t \
                                                                         \
@@ -183,6 +256,13 @@
     eor r_mval, r_mval, temp                                       \n\t
 
 #define SEC_SHIFT_1S_5_ITERATION_(r_mval, r_mask, x_mval, x_mask, temp) \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
+    nop                                                           \n\t \
     lsl r_mval, x_mval, CV16                                       \n\t \
     ldr temp, =CV65535                                             \n\t \
     orr r_mval, r_mval, temp                                       \n\t \
@@ -243,7 +323,6 @@
 
 #define SEC_NOT(x_mval, x_mask) \
     STR(SEC_NOT_(x_mval, x_mask))
-
 
 
 #endif /* ARM_MACROS_H */
