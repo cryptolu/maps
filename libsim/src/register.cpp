@@ -55,7 +55,7 @@ void Register::write(uint32_t val)
 	unsigned int pwr = bit_count(this->value ^ val);
 	this->value = val;
 	this->tracer_ptr->update(pwr);
-	LOG_TRACE("%s = 0x%08x\n", this->name.c_str(), val);
+	LOG_TRACE("%s = %08x\n", this->name.c_str(), val);
 }
 
 void Register::set_name(std::string name)
