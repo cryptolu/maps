@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	bool do_test = false;
 	int c;
 
-	while ((c = getopt(argc, argv, "sto:n:i:vg")) != -1)
+	while ((c = getopt(argc, argv, "sto:n:i:vgp")) != -1)
 	{
 		switch (c)
 		{
@@ -78,6 +78,9 @@ int main(int argc, char *argv[])
 			case 'g':
 				options.with_gdb = true;
 				break;
+			case 'p':
+				options.with_pipeline_leakage = true;
+				break;
 			default:
                 fprintf(stderr, "%s -v | [-i <trace_index_file>] [-s] [-o <filename>] [-t | -n <n_measure]> [-g]\n", argv[0]);
                 fprintf(stderr, "\t-i: generate power trace index\n");
@@ -87,6 +90,7 @@ int main(int argc, char *argv[])
 				fprintf(stderr, "\t-n: number of measurements\n");
 				fprintf(stderr, "\t-v: print version number and exit\n");
 				fprintf(stderr, "\t-g: wait for gdb connection on port 50007\n");
+				fprintf(stderr, "\t-p: include leakage from pipeline registers A and B\n"); /* TODO: negate flag usage after functionality has been verified */
 				std::exit(EXIT_FAILURE);
 		}
 	}

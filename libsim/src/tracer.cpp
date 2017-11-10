@@ -51,7 +51,6 @@ void Tracer::reset(void)
 
 void Tracer::update(unsigned int value)
 {
-	/* TODO: define power model */
 	this->trace.push_back(value);
 	this->register_write_count++;
 }
@@ -64,4 +63,12 @@ std::vector<unsigned int> Tracer::get_trace(void) const
 unsigned long int Tracer::get_register_write_count(void) const
 {
 	return this->register_write_count;
+}
+
+
+
+
+void Tracer_none::update(unsigned int value)
+{
+	this->register_write_count++;
 }

@@ -43,6 +43,7 @@ typedef struct
 	bool save_traces;                     /* select to save measure waveforms (debug only!) */
 	unsigned long int n_measure;          /* number of measurements for t-test */
 	bool with_gdb;                        /* true when connected to GDB server */
+	bool with_pipeline_leakage;           /* include leakage from pipeline registers A and B */           
 } Options;
 
 const Options default_options =
@@ -52,7 +53,8 @@ const Options default_options =
 	"t_test.npy",
 	false,
 	0,
-	false
+	false,
+	false /* TODO: set it to true after functionality has been verified */
 };
 
 #endif

@@ -77,6 +77,7 @@ class Cpu
 		unsigned int itstate;
 		Memory ram;
 		Tracer tracer;
+		Tracer_none tracer_none;
 		unsigned long int instruction_count;
 
 		bool with_gdb;

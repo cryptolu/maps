@@ -69,9 +69,17 @@ Cpu::Cpu(Options &options)
 		this->regs[i].bind_tracer(&(this->tracer));
 		this->regs[i].set_name("r" + std::to_string(i));
 	}
-	this->reg_a.bind_tracer(&(this->tracer));
+	if (options.with_pipeline_leakage)
+	{
+		this->reg_a.bind_tracer(&(this->tracer));
+		this->reg_b.bind_tracer(&(this->tracer));
+	}
+	else
+	{
+		this->reg_a.bind_tracer(&(this->tracer_none));
+		this->reg_b.bind_tracer(&(this->tracer_none));
+	}
 	this->reg_a.set_name("rA");
-	this->reg_b.bind_tracer(&(this->tracer));
 	this->reg_b.set_name("rB");
 	/* set up instruction count and trace capabilities */
 	this->instruction_count = 0;
@@ -1121,9 +1129,9 @@ void Cpu::execute_op32_data_shifted_reg(uint16_t ins16, uint16_t ins16_b)
 	{
 		this->flags[C] = c_out;
 	}
-	/* C flag may be overriden by the next procedure but it is intended */
 	this->reg_a.write(this->regs[rn].read());
 	this->reg_b.write(this->regs[rm].read());
+	/* C flag may be overriden by the next procedure but it is intended */
 	this->execute_alu_op(alu_op, rd, rn, s, b);
 	this->pc += 4;
 }
@@ -1145,8 +1153,8 @@ void Cpu::execute_op32_data_mod_imm(uint16_t ins16, uint16_t ins16_b)
 	{
 		this->flags[C] = c_out;
 	}
-	/* C flag may be overriden by the next procedure but it is intended */
 	this->reg_a.write(this->regs[rn].read());
+	/* C flag may be overriden by the next procedure but it is intended */
 	this->execute_alu_op(alu_op, rd, rn, s, imm32);
 	this->pc += 4;
 }

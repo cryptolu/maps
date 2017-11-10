@@ -38,7 +38,7 @@
 
 class Tracer
 {
-	private:
+	protected:
 		std::vector<unsigned int> trace;
 		unsigned long int register_write_count;
 
@@ -50,6 +50,12 @@ class Tracer
 		void update(unsigned int value);
 		std::vector<unsigned int> get_trace(void) const;
 		unsigned long int get_register_write_count(void) const;
+};
+
+
+class Tracer_none : public Tracer
+{
+	void update(unsigned int value);
 };
 
 #endif
