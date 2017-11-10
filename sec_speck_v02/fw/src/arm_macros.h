@@ -38,6 +38,7 @@
 
 #define SEC_AND_(r_mval, r_mask, x_mval, x_mask, y_mask, y_mval, temp) \
     and temp, x_mval, y_mval                                      \n\t \
+	mov r_mval, 0                                                 \n\t /* prevent leakage of next instruction */ \
     eor r_mval, r_mask, temp                                      \n\t \
 	mov temp, 0                                                   \n\t /* prevent leakage of next instruction */ \
     and temp, x_mval, y_mask                                      \n\t \
