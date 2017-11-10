@@ -39,8 +39,7 @@ void sec_speck_v02(uint32_t *buffer, uint32_t rk_masked)
 
 
         /* initialize loop counter */
-//        "mov r12, 27" "\n\t" // TODO
-        "mov r12, 1" "\n\t"
+        "mov r12, 27" "\n\t"
         "dec_step:" "\n\t"
 
 

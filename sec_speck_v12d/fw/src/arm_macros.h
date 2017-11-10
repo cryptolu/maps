@@ -38,11 +38,9 @@
 
 
 #define SEC_AND_(r_mval, r_mask, x_mval, x_mask, y_mask, y_mval, temp) \
-    nop                                                   \n\t /* prevent HD leakage */ \
-    nop                                                   \n\t /* prevent HD leakage */ \
-    nop                                                   \n\t /* prevent HD leakage */ \
     mov temp, 0                                                   \n\t /* prevent HD leakage */ \
     and temp, x_mval, y_mval                                      \n\t \
+    mov r_mval, 0                                                   \n\t /* prevent HD leakage */ \
     eor r_mval, r_mask, temp                                      \n\t \
                                                                        \
     mov temp, 0                                                   \n\t /* prevent HD leakage */ \
