@@ -25,30 +25,43 @@
 ################################################################################
 ################################################################################
 #
-# Re-generate data 
+# Top-level makefile (mainly used for maintenance)
 #
 ################################################################################
 
-# remake everything
-.PHONY: all
-all: sim algo
-
-# Make simulator
-.PHONY: sim
-sim: ./libsim
-	$(MAKE) -C $</build clean
-	$(MAKE) -C $</build cleaninstall
-	$(MAKE) -C $</build install
-
-
-# Algorithms
 ALGO_DIRS := $(wildcard sec_*/.)
-algo: $(ALGO_DIRS)
-.PHONY: algo $(ALGO_DIRS)
 
-$(ALGO_DIRS):
-	echo $@
-	$(MAKE) -C $@/sim/build clean
-	$(MAKE) -C $@/sim/build
-	$(MAKE) -C $@/fw/build clean
-	$(MAKE) -C $@/fw/build data
+.PHONY: compile_fw
+compile_fw:
+	@for dir in $(ALGO_DIRS); do \
+		echo "-- compiling FW in $$dir"; \
+		$(MAKE) -C $$dir/fw/build; \
+	done
+
+.PHONY: compile_sim
+compile_sim: compile_lib
+	@for dir in $(ALGO_DIRS); do \
+		echo "-- compiling SIM in $$dir"; \
+		$(MAKE) -C $$dir/sim/build; \
+	done
+
+.PHONY: compile_lib
+compile_lib:
+	echo "-- compiling library"; \
+	$(MAKE) -C libsim/build install; \
+
+.PHONY: check
+check: compile_lib compile_sim compile_fw
+	@for dir in $(ALGO_DIRS); do \
+		echo "-- checking $$dir"; \
+		$(MAKE) -C $$dir/fw/build check; \
+	done
+
+.PHONY: clean
+clean:
+	@for dir in $(ALGO_DIRS); do \
+		echo "-- cleaning directory $$dir"; \
+		$(MAKE) -C $$dir/sim/build clean; \
+		$(MAKE) -C $$dir/fw/build clean; \
+	done
+

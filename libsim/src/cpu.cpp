@@ -523,6 +523,7 @@ void Cpu::execute_conditional_branch(unsigned int cond, int32_t offset, bool is_
 	}
 	if (tst == 1)
 	{
+		this->reg_a.write(this->pc + 4);
 		this->pc = this->pc + offset + 4;
 	}
 	else
@@ -631,6 +632,7 @@ void Cpu::execute_op16_pushm(uint16_t ins16)
 {
 	/* push multiple registers A6.7.98 */
 	LOG_TRACE("OP16_PUSHM\n");
+	this->pc += 2;
 	unsigned int m = GET_BIT(ins16, 8);
 	uint8_t register_list = GET_FIELD(ins16, 0, 8);
 	uint32_t d_addr_base = this->regs[SP].read() - 4*bit_count(register_list);
@@ -653,7 +655,6 @@ void Cpu::execute_op16_pushm(uint16_t ins16)
 		d_addr += 4;
 	}
 	this->regs[SP].write(d_addr_base);
-	this->pc += 2;
 }
 
 
@@ -690,9 +691,9 @@ void Cpu::execute_op16_sub_imm_sp(uint16_t ins16)
 {
 	/* SUB SP IMM A6.7.134 */
 	LOG_TRACE("OP16_SUB_IMM_SP\n");
+	this->pc += 2;
 	uint32_t imm7 = GET_FIELD(ins16, 0, 7) << 2;
 	this->regs[SP].write(this->regs[SP].read() - imm7);
-	this->pc += 2;
 }
 
 
@@ -700,9 +701,9 @@ void Cpu::execute_op16_add_imm_sp(uint16_t ins16)
 {
 	/* ADD SP IMM A6.7.5/T2 */
 	LOG_TRACE("OP16_ADD_IMM_SP\n");
+	this->pc += 2;
 	uint32_t imm7 = GET_FIELD(ins16, 0, 7) << 2;
 	this->regs[SP].write(this->regs[SP].read() + imm7);
-	this->pc += 2;
 }
 
 
@@ -710,11 +711,11 @@ void Cpu::execute_op16_st_reg_sp_rel(uint16_t ins16)
 {
 	/* store reg SP relative A6.7.119/T2 */
 	LOG_TRACE("OP16_ST_REG_SP_REL\n");
+	this->pc += 2;
 	uint32_t imm8 = GET_FIELD(ins16, 0, 8) << 2;
 	unsigned int rt = GET_FIELD(ins16, 8, 3);
 	uint32_t d_addr = this->regs[SP].read() + imm8;
 	this->ram.write32(d_addr, this->regs[rt].read());
-	this->pc += 2;
 }
 
 
@@ -722,17 +723,18 @@ void Cpu::execute_op16_ld_reg_sp_rel(uint16_t ins16)
 {
 	/* load reg SP relative A6.7.42/T2 */
 	LOG_TRACE("OP16_LD_REG_SP_REL\n");
+	this->pc += 2;
 	uint32_t imm8 = GET_FIELD(ins16, 0, 8) << 2;
 	unsigned int rt = GET_FIELD(ins16, 8, 3);
 	uint32_t d_addr = this->regs[SP].read() + imm8;
 	this->regs[rt].write(this->ram.read32(d_addr));
-	this->pc += 2;
 }
 
 
 void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 {
 	LOG_TRACE("OP16_SHIFT_IMM_ADD_SUB_MOV_CMP\n");
+	this->pc += 2;
 	uint32_t y;
 	unsigned int c_out;
 	unsigned int op = GET_FIELD(ins16, 9, 5);
@@ -866,7 +868,6 @@ void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 			this->report_error("undefined opcode", "OP16_SHIFT_IMM_ADD_SUB_MOV_CMP");
 			break;
 	}
-	this->pc += 2;
 }
 
 
@@ -933,9 +934,16 @@ void Cpu::execute_op16_ldmia(uint16_t ins16)
 {
 	/* load multiple register A6.7.40/T1 */
 	LOG_TRACE("OP16_LDMIA\n");
+	this->pc += 2;
 	unsigned int rn = GET_FIELD(ins16, 8, 3);
 	unsigned int register_list = GET_FIELD(ins16, 0, 8);
 	uint32_t d_addr = this->regs[rn].read();
+	this->reg_a.write(d_addr);
+	uint32_t f_addr = d_addr + 4*bit_count(register_list);
+	if (GET_BIT(register_list, rn) == 0)
+	{
+		this->regs[rn].write(f_addr);
+	}
 	for (unsigned int i = 0; i < 8; i++)
 	{
 		if (GET_BIT(register_list, i) == 1)
@@ -944,11 +952,6 @@ void Cpu::execute_op16_ldmia(uint16_t ins16)
 			d_addr += 4;
 		}
 	}
-	if (GET_BIT(register_list, rn) == 0)
-	{
-		this->regs[rn].write(d_addr);
-	}
-	this->pc += 2;
 }
 
 
@@ -982,14 +985,14 @@ void Cpu::execute_op16_ld_literal_pool(uint16_t ins16)
 {
 	/* LDR (literal pool) A6.7.43/T1 */
 	LOG_TRACE("OP16_LD_LITERAL_POOL\n");
+	this->pc += 2;
 	unsigned int rt = GET_FIELD(ins16, 8, 3);
 	unsigned int imm8 = GET_FIELD(ins16, 0, 8);
 	uint32_t imm32 = (imm8 << 2);
-	uint32_t base = (this->pc & 0xfffffffcU) + 4;
+	uint32_t base = (this->pc & 0xfffffffcU) + 2;
 	uint32_t addr = base + imm32;
 	uint32_t data = this->ram.read32(addr);
 	this->regs[rt].write(data);
-	this->pc += 2;
 }
 
 
@@ -1034,6 +1037,7 @@ void Cpu::execute_op32_stmia(uint16_t ins16, uint16_t ins16_b)
 {
 	/* STMIA A6.7.117/T2 */
 	LOG_TRACE("OP32_STMIA\n");
+	this->pc += 4;
 	unsigned int w = GET_BIT(ins16, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int register_list = ins16_b;
@@ -1052,7 +1056,6 @@ void Cpu::execute_op32_stmia(uint16_t ins16, uint16_t ins16_b)
 	{
 		this->regs[rn].write(d_addr);
 	}
-	this->pc += 4;
 }
 
 
@@ -1060,6 +1063,7 @@ void Cpu::execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b)
 {
 	/* STMDB A6.7.118/T1 */
 	LOG_TRACE("OP32_STMDB\n");
+	this->pc += 4;
 	unsigned int w = GET_BIT(ins16, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int register_list = ins16_b;
@@ -1078,7 +1082,6 @@ void Cpu::execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b)
 	{
 		this->regs[rn].write(d_addr_base);
 	}
-	this->pc += 4;
 }
 
 
@@ -1086,6 +1089,7 @@ void Cpu::execute_op32_ldmdb(uint16_t ins16, uint16_t ins16_b)
 {
 	/* STMDB A6.7.41/T1 */
 	LOG_TRACE("OP32_LDMDB\n");
+	this->pc += 4;
 	unsigned int w = GET_BIT(ins16, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int register_list = ins16_b;
@@ -1104,7 +1108,6 @@ void Cpu::execute_op32_ldmdb(uint16_t ins16, uint16_t ins16_b)
 	{
 		this->regs[rn].write(d_addr_base);
 	}
-	this->pc += 4;
 }
 
 
@@ -1112,6 +1115,7 @@ void Cpu::execute_op32_data_shifted_reg(uint16_t ins16, uint16_t ins16_b)
 {
 	/* data processing (shifted register) A5.3.11 */
 	LOG_TRACE("OP32_DATA_SHIFTED_REG\n");
+	this->pc += 4;
 	unsigned int alu_op = GET_FIELD(ins16, 5, 4);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int s = GET_BIT(ins16, 4);
@@ -1133,7 +1137,6 @@ void Cpu::execute_op32_data_shifted_reg(uint16_t ins16, uint16_t ins16_b)
 	this->reg_b.write(this->regs[rm].read());
 	/* C flag may be overriden by the next procedure but it is intended */
 	this->execute_alu_op(alu_op, rd, rn, s, b);
-	this->pc += 4;
 }
 
 
@@ -1141,6 +1144,7 @@ void Cpu::execute_op32_data_mod_imm(uint16_t ins16, uint16_t ins16_b)
 {
 	/* data processing (modified immediate) A5.3.1 */
 	LOG_TRACE("OP32_DATA_MOD_IMM\n");
+	this->pc += 4;
 	unsigned int alu_op = GET_FIELD(ins16, 5, 4);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int rd = GET_FIELD(ins16_b, 8, 4);
@@ -1156,7 +1160,6 @@ void Cpu::execute_op32_data_mod_imm(uint16_t ins16, uint16_t ins16_b)
 	this->reg_a.write(this->regs[rn].read());
 	/* C flag may be overriden by the next procedure but it is intended */
 	this->execute_alu_op(alu_op, rd, rn, s, imm32);
-	this->pc += 4;
 }
 
 
@@ -1164,6 +1167,7 @@ void Cpu::execute_op32_data_plain_imm(uint16_t ins16, uint16_t ins16_b)
 {
 	/* data processing (plain binary immediate) A5.3.3 */
 	LOG_TRACE("OP32_DATA_PLAIN_IMM\n");
+	this->pc += 4;
 	unsigned int op = GET_FIELD(ins16, 4, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	if (op == 0)
@@ -1238,7 +1242,6 @@ void Cpu::execute_op32_data_plain_imm(uint16_t ins16, uint16_t ins16_b)
 	{
 		this->report_error("unsupported operand", "OP32_DATA_PLAIN_IMM");
 	}
-	this->pc += 4;
 }
 
 
@@ -1246,6 +1249,7 @@ void Cpu::execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b)
 {
 	/* data processing (register) A5.3.12 */
 	LOG_TRACE("OP32_DATA_REG\n");
+	this->pc += 4;
 	unsigned int op1 = GET_FIELD(ins16, 4, 4);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int op2 = GET_FIELD(ins16_b, 4, 4);
@@ -1329,7 +1333,6 @@ void Cpu::execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b)
 	{
 		this->report_error("unsupported instruction", "OP32_DATA_REG");
 	}
-	this->pc += 4;
 }
 
 
@@ -1367,6 +1370,7 @@ void Cpu::execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b)
 {
 	/* STR(immediate) A6.7.119/T4 */
 	LOG_TRACE("OP32_STR_IMM\n");
+	this->pc += 4;
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
 	unsigned int imm8 = GET_FIELD(ins16_b, 0, 8);
@@ -1392,7 +1396,6 @@ void Cpu::execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b)
 	{
 		this->regs[rn].write(offset_addr);
 	}
-	this->pc += 4;
 }
 
 
@@ -1400,6 +1403,7 @@ void Cpu::execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b)
 {
 	/* LDR(immediate) A6.7.42/T4 */
 	LOG_TRACE("OP32_LDR_IMM\n");
+	this->pc += 4;
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
 	unsigned int imm8 = GET_FIELD(ins16_b, 0, 8);
@@ -1426,7 +1430,6 @@ void Cpu::execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b)
 		this->regs[rn].write(offset_addr);
 	}
 	this->regs[rt].write(data);
-	this->pc += 4;
 }
 
 
