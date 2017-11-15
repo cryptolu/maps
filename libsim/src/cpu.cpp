@@ -30,7 +30,7 @@
  *
  ******************************************************************************/
 
-//#define DEBUG_TRACE
+//#define CPU_DEBUG_TRACE
 
 #include <cstdio>
 #include <cstdint>
@@ -263,7 +263,7 @@ Step_status Cpu::step(void)
 	{ /* 32-bit instructions */
 		uint32_t ins16_b = this->ram.read16(this->pc + 2);
 		uint32_t ins32 = (ins16 << 16) | ins16_b;
-		LOG_TRACE(">>>>>>>> p_addr = 0x%08x, ins32 = 0x%08x: ", this->pc, ins32);
+		CPU_LOG_TRACE(">>>>>>>> p_addr = 0x%08x, ins32 = 0x%08x: ", this->pc, ins32);
 		if (TEST_INS32(OP32_LDMIA))
 		{
 			this->execute_op32_ldmia(ins16, ins16_b);
@@ -319,7 +319,7 @@ Step_status Cpu::step(void)
 	}
 	else
 	{ /* 16-bit instructions */
-		LOG_TRACE(">>>>>>>> p_addr = 0x%08x, ins16 = 0x%04x: ", this->pc, ins16);
+		CPU_LOG_TRACE(">>>>>>>> p_addr = 0x%08x, ins16 = 0x%04x: ", this->pc, ins16);
 		if (TEST_INS16(OP16_PUSHM))
 		{
 			this->execute_op16_pushm(ins16);
@@ -420,12 +420,11 @@ unsigned long int Cpu::run(uint32_t from, uint32_t until, unsigned long int limi
 				   using the "BKPT" instruction in a different way for debugging */
 				this->pc = (p_addr + 2);
 			}
-			#ifdef DEBUG_TRACE
+			#ifdef CPU_DEBUG_TRACE
 			this->dump_regs();
 			this->dump_memory(0x0400, 16);
 			this->dump_memory(0x0500, 16);
 			this->dump_memory(8*1024 - 64, 64);
-			printf("0x%08x\n", this->pc);
 			#endif
 			if (limit != 0 and this->instruction_count == limit)
 			{
@@ -631,7 +630,7 @@ void Cpu::execute_alu_op(unsigned int alu_op, unsigned int rd, unsigned int rn, 
 void Cpu::execute_op16_pushm(uint16_t ins16)
 {
 	/* push multiple registers A6.7.98 */
-	LOG_TRACE("OP16_PUSHM\n");
+	CPU_LOG_TRACE("OP16_PUSHM\n");
 	this->pc += 2;
 	unsigned int m = GET_BIT(ins16, 8);
 	uint8_t register_list = GET_FIELD(ins16, 0, 8);
@@ -661,7 +660,7 @@ void Cpu::execute_op16_pushm(uint16_t ins16)
 void Cpu::execute_op16_popm(uint16_t ins16)
 {
 	/* pop multiple registers A6.7.97/T1 */
-	LOG_TRACE("OP16_POPM\n");
+	CPU_LOG_TRACE("OP16_POPM\n");
 	unsigned int p = GET_BIT(ins16, 8);
 	unsigned int register_list = GET_FIELD(ins16, 0, 8);
 	uint32_t d_addr = this->regs[SP].read();
@@ -690,7 +689,7 @@ void Cpu::execute_op16_popm(uint16_t ins16)
 void Cpu::execute_op16_sub_imm_sp(uint16_t ins16)
 {
 	/* SUB SP IMM A6.7.134 */
-	LOG_TRACE("OP16_SUB_IMM_SP\n");
+	CPU_LOG_TRACE("OP16_SUB_IMM_SP\n");
 	this->pc += 2;
 	uint32_t imm7 = GET_FIELD(ins16, 0, 7) << 2;
 	this->regs[SP].write(this->regs[SP].read() - imm7);
@@ -700,7 +699,7 @@ void Cpu::execute_op16_sub_imm_sp(uint16_t ins16)
 void Cpu::execute_op16_add_imm_sp(uint16_t ins16)
 {
 	/* ADD SP IMM A6.7.5/T2 */
-	LOG_TRACE("OP16_ADD_IMM_SP\n");
+	CPU_LOG_TRACE("OP16_ADD_IMM_SP\n");
 	this->pc += 2;
 	uint32_t imm7 = GET_FIELD(ins16, 0, 7) << 2;
 	this->regs[SP].write(this->regs[SP].read() + imm7);
@@ -710,7 +709,7 @@ void Cpu::execute_op16_add_imm_sp(uint16_t ins16)
 void Cpu::execute_op16_st_reg_sp_rel(uint16_t ins16)
 {
 	/* store reg SP relative A6.7.119/T2 */
-	LOG_TRACE("OP16_ST_REG_SP_REL\n");
+	CPU_LOG_TRACE("OP16_ST_REG_SP_REL\n");
 	this->pc += 2;
 	uint32_t imm8 = GET_FIELD(ins16, 0, 8) << 2;
 	unsigned int rt = GET_FIELD(ins16, 8, 3);
@@ -722,7 +721,7 @@ void Cpu::execute_op16_st_reg_sp_rel(uint16_t ins16)
 void Cpu::execute_op16_ld_reg_sp_rel(uint16_t ins16)
 {
 	/* load reg SP relative A6.7.42/T2 */
-	LOG_TRACE("OP16_LD_REG_SP_REL\n");
+	CPU_LOG_TRACE("OP16_LD_REG_SP_REL\n");
 	this->pc += 2;
 	uint32_t imm8 = GET_FIELD(ins16, 0, 8) << 2;
 	unsigned int rt = GET_FIELD(ins16, 8, 3);
@@ -733,7 +732,7 @@ void Cpu::execute_op16_ld_reg_sp_rel(uint16_t ins16)
 
 void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 {
-	LOG_TRACE("OP16_SHIFT_IMM_ADD_SUB_MOV_CMP\n");
+	CPU_LOG_TRACE("OP16_SHIFT_IMM_ADD_SUB_MOV_CMP\n");
 	this->pc += 2;
 	uint32_t y;
 	unsigned int c_out;
@@ -873,7 +872,7 @@ void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 
 void Cpu::execute_op16_special_data_branch(uint16_t ins16)
 {
-	LOG_TRACE("OP16_SPECIAL_DATA_BRANCH\n"); /* A5.2.3 */
+	CPU_LOG_TRACE("OP16_SPECIAL_DATA_BRANCH\n"); /* A5.2.3 */
 	unsigned int op = GET_FIELD(ins16, 6, 4);
 	unsigned int rd;
 	unsigned int rm;
@@ -933,7 +932,7 @@ void Cpu::execute_op16_special_data_branch(uint16_t ins16)
 void Cpu::execute_op16_ldmia(uint16_t ins16)
 {
 	/* load multiple register A6.7.40/T1 */
-	LOG_TRACE("OP16_LDMIA\n");
+	CPU_LOG_TRACE("OP16_LDMIA\n");
 	this->pc += 2;
 	unsigned int rn = GET_FIELD(ins16, 8, 3);
 	unsigned int register_list = GET_FIELD(ins16, 0, 8);
@@ -958,7 +957,7 @@ void Cpu::execute_op16_ldmia(uint16_t ins16)
 void Cpu::execute_op16_nop(void)
 {
 	/* NOP A6.7.87/T1 */
-	LOG_TRACE("OP16_NOP\n");
+	CPU_LOG_TRACE("OP16_NOP\n");
 	this->pc += 2;
 }
 
@@ -966,14 +965,14 @@ void Cpu::execute_op16_nop(void)
 void Cpu::execute_op16_breakpoint(uint16_t ins16)
 {
 	/* BKPT A6.7.17 */
-	LOG_TRACE("OP16_BREAKPOINT\n");
+	CPU_LOG_TRACE("OP16_BREAKPOINT\n");
 }
 
 
 void Cpu::execute_op16_cond_branch(uint16_t ins16)
 {
 	/* conditional branch A6.7.12/T1 */
-	LOG_TRACE("OP16_COND_BRANCH\n");
+	CPU_LOG_TRACE("OP16_COND_BRANCH\n");
 	unsigned int cond = GET_FIELD(ins16, 8, 4);
 	int8_t imm8 = (int8_t)GET_FIELD(ins16, 0, 8) & 0xff;
 	int32_t offset = imm8*2;
@@ -984,7 +983,7 @@ void Cpu::execute_op16_cond_branch(uint16_t ins16)
 void Cpu::execute_op16_ld_literal_pool(uint16_t ins16)
 {
 	/* LDR (literal pool) A6.7.43/T1 */
-	LOG_TRACE("OP16_LD_LITERAL_POOL\n");
+	CPU_LOG_TRACE("OP16_LD_LITERAL_POOL\n");
 	this->pc += 2;
 	unsigned int rt = GET_FIELD(ins16, 8, 3);
 	unsigned int imm8 = GET_FIELD(ins16, 0, 8);
@@ -1002,7 +1001,7 @@ void Cpu::execute_op16_ld_literal_pool(uint16_t ins16)
 void Cpu::execute_op32_ldmia(uint16_t ins16, uint16_t ins16_b)
 {
 	/* LDMIA A6.7.40/T2 */
-	LOG_TRACE("OP32_LDMIA\n");
+	CPU_LOG_TRACE("OP32_LDMIA\n");
 	unsigned int w = GET_BIT(ins16, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int register_list = ins16_b;
@@ -1036,7 +1035,7 @@ void Cpu::execute_op32_ldmia(uint16_t ins16, uint16_t ins16_b)
 void Cpu::execute_op32_stmia(uint16_t ins16, uint16_t ins16_b)
 {
 	/* STMIA A6.7.117/T2 */
-	LOG_TRACE("OP32_STMIA\n");
+	CPU_LOG_TRACE("OP32_STMIA\n");
 	this->pc += 4;
 	unsigned int w = GET_BIT(ins16, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
@@ -1062,7 +1061,7 @@ void Cpu::execute_op32_stmia(uint16_t ins16, uint16_t ins16_b)
 void Cpu::execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b)
 {
 	/* STMDB A6.7.118/T1 */
-	LOG_TRACE("OP32_STMDB\n");
+	CPU_LOG_TRACE("OP32_STMDB\n");
 	this->pc += 4;
 	unsigned int w = GET_BIT(ins16, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
@@ -1088,7 +1087,7 @@ void Cpu::execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b)
 void Cpu::execute_op32_ldmdb(uint16_t ins16, uint16_t ins16_b)
 {
 	/* STMDB A6.7.41/T1 */
-	LOG_TRACE("OP32_LDMDB\n");
+	CPU_LOG_TRACE("OP32_LDMDB\n");
 	this->pc += 4;
 	unsigned int w = GET_BIT(ins16, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
@@ -1114,7 +1113,7 @@ void Cpu::execute_op32_ldmdb(uint16_t ins16, uint16_t ins16_b)
 void Cpu::execute_op32_data_shifted_reg(uint16_t ins16, uint16_t ins16_b)
 {
 	/* data processing (shifted register) A5.3.11 */
-	LOG_TRACE("OP32_DATA_SHIFTED_REG\n");
+	CPU_LOG_TRACE("OP32_DATA_SHIFTED_REG\n");
 	this->pc += 4;
 	unsigned int alu_op = GET_FIELD(ins16, 5, 4);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
@@ -1143,7 +1142,7 @@ void Cpu::execute_op32_data_shifted_reg(uint16_t ins16, uint16_t ins16_b)
 void Cpu::execute_op32_data_mod_imm(uint16_t ins16, uint16_t ins16_b)
 {
 	/* data processing (modified immediate) A5.3.1 */
-	LOG_TRACE("OP32_DATA_MOD_IMM\n");
+	CPU_LOG_TRACE("OP32_DATA_MOD_IMM\n");
 	this->pc += 4;
 	unsigned int alu_op = GET_FIELD(ins16, 5, 4);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
@@ -1166,7 +1165,7 @@ void Cpu::execute_op32_data_mod_imm(uint16_t ins16, uint16_t ins16_b)
 void Cpu::execute_op32_data_plain_imm(uint16_t ins16, uint16_t ins16_b)
 {
 	/* data processing (plain binary immediate) A5.3.3 */
-	LOG_TRACE("OP32_DATA_PLAIN_IMM\n");
+	CPU_LOG_TRACE("OP32_DATA_PLAIN_IMM\n");
 	this->pc += 4;
 	unsigned int op = GET_FIELD(ins16, 4, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
@@ -1248,7 +1247,7 @@ void Cpu::execute_op32_data_plain_imm(uint16_t ins16, uint16_t ins16_b)
 void Cpu::execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b)
 {
 	/* data processing (register) A5.3.12 */
-	LOG_TRACE("OP32_DATA_REG\n");
+	CPU_LOG_TRACE("OP32_DATA_REG\n");
 	this->pc += 4;
 	unsigned int op1 = GET_FIELD(ins16, 4, 4);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
@@ -1339,7 +1338,7 @@ void Cpu::execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b)
 void Cpu::execute_op32_branch_misc(uint16_t ins16, uint16_t ins16_b)
 {
 	/* branch and miscellanous control A5.3.4 */
-	LOG_TRACE("OP32_BRANCH_MISC\n");
+	CPU_LOG_TRACE("OP32_BRANCH_MISC\n");
 	unsigned int op1 = GET_FIELD(ins16, 4, 7);
 	unsigned int op2 = GET_FIELD(ins16_b, 12, 3);
 	if (((op2 & 0x05) == 0x00) && ((op1 & 0x38) != 0x38))
@@ -1369,7 +1368,7 @@ void Cpu::execute_op32_branch_misc(uint16_t ins16, uint16_t ins16_b)
 void Cpu::execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b)
 {
 	/* STR(immediate) A6.7.119/T4 */
-	LOG_TRACE("OP32_STR_IMM\n");
+	CPU_LOG_TRACE("OP32_STR_IMM\n");
 	this->pc += 4;
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
@@ -1402,7 +1401,7 @@ void Cpu::execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b)
 void Cpu::execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b)
 {
 	/* LDR(immediate) A6.7.42/T4 */
-	LOG_TRACE("OP32_LDR_IMM\n");
+	CPU_LOG_TRACE("OP32_LDR_IMM\n");
 	this->pc += 4;
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
@@ -1436,7 +1435,7 @@ void Cpu::execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b)
 void Cpu::execute_op32_ld_literal_pool(uint16_t ins16, uint16_t ins16_b)
 {
 	/* LDR (literal pool) A6.7.43/T2 */
-	LOG_TRACE("OP32_LD_LITERAL_POOL\n");
+	CPU_LOG_TRACE("OP32_LD_LITERAL_POOL\n");
 	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
 	unsigned int imm32 = GET_FIELD(ins16_b, 0, 12);
 	unsigned int u = GET_BIT(ins16, 7);

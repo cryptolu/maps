@@ -32,7 +32,7 @@
 
 #include <string>
 
-#define DEBUG_TRACE
+//#define REG_TRACE
 #include "debug.h"
 
 #include "register.h"
@@ -55,7 +55,7 @@ void Register::write(uint32_t val)
 	unsigned int pwr = bit_count(this->value ^ val);
 	this->value = val;
 	this->tracer_ptr->update(pwr);
-	LOG_TRACE("%s = %08x\n", this->name.c_str(), val);
+	REG_LOG_TRACE("%s = %08x\n", this->name.c_str(), val);
 }
 
 void Register::set_name(std::string name)

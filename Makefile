@@ -30,6 +30,7 @@
 ################################################################################
 
 ALGO_DIRS := $(wildcard sec_*/.)
+TRACE_OPT := # blank, should be overriden by command line assignment
 
 .PHONY: compile_fw
 compile_fw:
@@ -42,7 +43,7 @@ compile_fw:
 compile_sim: compile_lib
 	@for dir in $(ALGO_DIRS); do \
 		echo "-- compiling SIM in $$dir"; \
-		$(MAKE) -C $$dir/sim/build; \
+		$(MAKE) -C $$dir/sim/build $(TRACE_OPT); \
 	done
 
 .PHONY: compile_lib

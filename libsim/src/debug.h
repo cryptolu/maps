@@ -33,10 +33,22 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
-#ifdef DEBUG_TRACE
-#define LOG_TRACE(...) fprintf(stderr, __VA_ARGS__)
+#ifdef CPU_DEBUG_TRACE
+#define CPU_LOG_TRACE(...) fprintf(stderr, __VA_ARGS__)
 #else
-#define LOG_TRACE(...)
+#define CPU_LOG_TRACE(...)
+#endif
+
+#ifdef RSP_DEBUG_TRACE
+#define RSP_LOG_TRACE(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define RSP_LOG_TRACE(...)
+#endif
+
+#ifdef REG_TRACE
+#define REG_LOG_TRACE(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define REG_LOG_TRACE(...)
 #endif
 
 #endif

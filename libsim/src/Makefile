@@ -25,7 +25,10 @@
 ################################################################################
 ################################################################################
 #
-#
+# TRACE_OPT can be set on command line. The allowed values are:
+# 1. -DREG_TRACE : enable tracing of register assignement
+# 2. -DCPU_DEBUG_TRACE : enable tracing of executed instructions
+# 3. -DRSP_DEBUG_TRACE : enable tracing of RSP packets
 #
 ################################################################################
 
@@ -33,7 +36,10 @@ vpath %.cpp ../src
 
 INSTALL_DIR := ../../install
 
-CFLAGS := -std=gnu++11 -O3 -I../src -Wall
+TRACE_OPT = # blank, should be overriden by command line assignement
+
+CFLAGS := -std=gnu++11 -O3 -I../src -Wall $(TRACE_OPT)
+
 
 %.o: %.cpp
 	g++ -c $(CFLAGS) -o $@ $<

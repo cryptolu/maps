@@ -13,7 +13,7 @@
 #include "presentation_layer.h"
 #include "rsp_layer.h"
 
-//#define DEBUG_TRACE
+//#define RSP_DEBUG_TRACE
 #include "debug.h"
 
 
@@ -69,7 +69,7 @@ void Rsp_layer::run(Cpu *cpu)
 	{
 		std::string request = this->presentation.get_packet();
 		std::string reply;
-		LOG_TRACE("request = <%s>\n", request.c_str());
+		RSP_LOG_TRACE("request = <%s>\n", request.c_str());
 		switch (request[0])
 		{
 			case 'H': /* set thread operation */
@@ -190,7 +190,7 @@ void Rsp_layer::run(Cpu *cpu)
 				break;
 			default:
 				this->presentation.send_ack();
-				LOG_TRACE("unsupported packet '%c'\n", request[0]);
+				RSP_LOG_TRACE("unsupported packet '%c'\n", request[0]);
 				reply = "";
 				break;
 		}
