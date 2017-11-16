@@ -634,26 +634,28 @@ void Cpu::execute_op16_pushm(uint16_t ins16)
 	this->pc += 2;
 	unsigned int m = GET_BIT(ins16, 8);
 	uint8_t register_list = GET_FIELD(ins16, 0, 8);
-	uint32_t d_addr_base = this->regs[SP].read() - 4*bit_count(register_list);
-	if (m == 1)
-	{
-		d_addr_base -= 4;
-	}
+	uint32_t current_sp = this->regs[SP].read();
+	this->reg_a.write(current_sp);
+	uint32_t d_addr_base = current_sp - 4*bit_count(register_list) - 4*m;
 	uint32_t d_addr = d_addr_base;
+	this->regs[SP].write(d_addr_base);
 	for (unsigned int i = 0; i < 8; i++)
 	{
 		if (GET_BIT(register_list, i) == 1)
 		{
-			this->ram.write32(d_addr, this->regs[i].read());
+			uint32_t current_reg_value = this->regs[i].read();
+			this->reg_a.write(current_reg_value);
+			this->ram.write32(d_addr, current_reg_value);
 			d_addr += 4;
 		}
 	}
 	if (m == 1)
 	{
-		this->ram.write32(d_addr, this->regs[LR].read());
+		uint32_t current_lr = this->regs[LR].read();
+		this->reg_a.write(current_lr);
+		this->ram.write32(d_addr, current_lr);
 		d_addr += 4;
 	}
-	this->regs[SP].write(d_addr_base);
 }
 
 
@@ -664,6 +666,9 @@ void Cpu::execute_op16_popm(uint16_t ins16)
 	unsigned int p = GET_BIT(ins16, 8);
 	unsigned int register_list = GET_FIELD(ins16, 0, 8);
 	uint32_t d_addr = this->regs[SP].read();
+	this->reg_a.write(d_addr);
+	uint32_t f_addr = d_addr + 4*bit_count(register_list) + 4*p;
+	this->regs[SP].write(f_addr);
 	for (unsigned int i = 0; i < 8; ++i)
 	{
 		if (GET_BIT(register_list, i) == 1)
@@ -672,7 +677,6 @@ void Cpu::execute_op16_popm(uint16_t ins16)
 			d_addr += 4;
 		}
 	}
-	this->regs[SP].write(d_addr);
 	if (p == 1)
 	{
 		this->pc = this->ram.read32(d_addr);
@@ -682,7 +686,6 @@ void Cpu::execute_op16_popm(uint16_t ins16)
 	{
 		this->pc += 2;
 	}
-	this->regs[SP].write(d_addr);
 }
 
 
@@ -692,7 +695,9 @@ void Cpu::execute_op16_sub_imm_sp(uint16_t ins16)
 	CPU_LOG_TRACE("OP16_SUB_IMM_SP\n");
 	this->pc += 2;
 	uint32_t imm7 = GET_FIELD(ins16, 0, 7) << 2;
-	this->regs[SP].write(this->regs[SP].read() - imm7);
+	uint32_t current_sp = this->regs[SP].read();
+	this->reg_a.write(current_sp);
+	this->regs[SP].write(current_sp - imm7);
 }
 
 
@@ -702,7 +707,9 @@ void Cpu::execute_op16_add_imm_sp(uint16_t ins16)
 	CPU_LOG_TRACE("OP16_ADD_IMM_SP\n");
 	this->pc += 2;
 	uint32_t imm7 = GET_FIELD(ins16, 0, 7) << 2;
-	this->regs[SP].write(this->regs[SP].read() + imm7);
+	uint32_t current_sp = this->regs[SP].read();
+	this->reg_a.write(current_sp);
+	this->regs[SP].write(current_sp + imm7);
 }
 
 
@@ -713,8 +720,12 @@ void Cpu::execute_op16_st_reg_sp_rel(uint16_t ins16)
 	this->pc += 2;
 	uint32_t imm8 = GET_FIELD(ins16, 0, 8) << 2;
 	unsigned int rt = GET_FIELD(ins16, 8, 3);
-	uint32_t d_addr = this->regs[SP].read() + imm8;
-	this->ram.write32(d_addr, this->regs[rt].read());
+	uint32_t current_sp = this->regs[SP].read();
+	this->reg_a.write(current_sp);
+	uint32_t d_addr = current_sp + imm8;
+	uint32_t current_rt = this->regs[rt].read();
+	this->reg_b.write(current_rt);
+	this->ram.write32(d_addr, current_rt);
 }
 
 
@@ -725,7 +736,9 @@ void Cpu::execute_op16_ld_reg_sp_rel(uint16_t ins16)
 	this->pc += 2;
 	uint32_t imm8 = GET_FIELD(ins16, 0, 8) << 2;
 	unsigned int rt = GET_FIELD(ins16, 8, 3);
-	uint32_t d_addr = this->regs[SP].read() + imm8;
+	uint32_t current_sp = this->regs[SP].read();
+	this->reg_a.write(current_sp);
+	uint32_t d_addr = current_sp + imm8;
 	this->regs[rt].write(this->ram.read32(d_addr));
 }
 
@@ -748,7 +761,9 @@ void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 				SRType sr_type;
 				unsigned int n;
 				decode_imm_shift(&sr_type, &n, type, imm5);
-				shift_c(&y, &c_out, this->regs[rm].read(), sr_type, n, this->flags[C]);
+				uint32_t current_rm = this->regs[rm].read();
+				this->reg_b.write(current_rm);
+				shift_c(&y, &c_out, current_rm, sr_type, n, this->flags[C]);
 				this->regs[rd].write(y);
 				if (!this->in_it_block())
 				{
@@ -762,7 +777,11 @@ void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 				unsigned int rn = GET_FIELD(ins16, 3, 3);
 				unsigned int rd = GET_FIELD(ins16, 0, 3);
 				unsigned int v_out;
-				add_c(&y, &c_out, &v_out, this->regs[rn].read(), this->regs[rm].read(), 0);
+				uint32_t current_rn = this->regs[rn].read();
+				uint32_t current_rm = this->regs[rm].read();
+				this->reg_a.write(current_rn);
+				this->reg_b.write(current_rm);
+				add_c(&y, &c_out, &v_out, current_rn, current_rm, 0);
 				this->regs[rd].write(y);
 				if (!this->in_it_block())
 				{
@@ -776,7 +795,11 @@ void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 				unsigned int rn = GET_FIELD(ins16, 3, 3);
 				unsigned int rd = GET_FIELD(ins16, 0, 3);
 				unsigned int v_out;
-				add_c(&y, &c_out, &v_out, this->regs[rn].read(), ~this->regs[rm].read(), 1);
+				uint32_t current_rn = this->regs[rn].read();
+				uint32_t current_rm = this->regs[rm].read();
+				this->reg_a.write(current_rn);
+				this->reg_b.write(current_rm);
+				add_c(&y, &c_out, &v_out, current_rn, ~current_rm, 1);
 				this->regs[rd].write(y);
 				if (!this->in_it_block())
 				{
@@ -791,7 +814,9 @@ void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 				unsigned int rd = GET_FIELD(ins16, 0, 3);
 				unsigned int imm3 = GET_FIELD(ins16, 6, 3);
 				unsigned int v_out;
-				add_c(&y, &c_out, &v_out, this->regs[rn].read(), imm3, 0);
+				uint32_t current_rn = this->regs[rn].read();
+				this->reg_a.write(current_rn);
+				add_c(&y, &c_out, &v_out, current_rn, imm3, 0);
 				this->regs[rd].write(y);
 				if (!this->in_it_block())
 				{
@@ -805,7 +830,9 @@ void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 				unsigned int rd = GET_FIELD(ins16, 0, 3);
 				unsigned int imm3 = GET_FIELD(ins16, 6, 3);
 				unsigned int v_out;
-				add_c(&y, &c_out, &v_out, this->regs[rn].read(), ~imm3, 1);
+				uint32_t current_rn = this->regs[rn].read();
+				this->reg_a.write(current_rn);
+				add_c(&y, &c_out, &v_out, current_rn, ~imm3, 1);
 				this->regs[rd].write(y);
 				if (!this->in_it_block())
 				{
@@ -831,7 +858,9 @@ void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 				unsigned int rn = GET_FIELD(ins16, 8, 3);
 				uint32_t imm8 = GET_FIELD(ins16, 0, 8);
 				unsigned int v_out;
-				add_c(&y, &c_out, &v_out, this->regs[rn].read(), ~imm8, 1);
+				uint32_t current_rn = this->regs[rn].read();
+				this->reg_a.write(current_rn);
+				add_c(&y, &c_out, &v_out, current_rn, ~imm8, 1);
 				this->update_flags(y, c_out, v_out);
 			}
 			break;
@@ -840,7 +869,9 @@ void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 				unsigned int rd = GET_FIELD(ins16, 8, 3);
 				uint32_t imm8 = GET_FIELD(ins16, 0, 8);
 				unsigned int v_out;
-				add_c(&y, &c_out, &v_out, this->regs[rd].read(), imm8, 0);
+				uint32_t current_rdn = this->regs[rd].read();
+				this->reg_a.write(current_rdn);
+				add_c(&y, &c_out, &v_out, current_rdn, imm8, 0);
 				this->regs[rd].write(y);
 				if (!this->in_it_block())
 				{
@@ -855,7 +886,9 @@ void Cpu::execute_op16_shift_imm_add_sub_mov_cmp(uint16_t ins16)
 				uint32_t y;
 				unsigned int c_out;
 				unsigned int v_out;
-				add_c(&y, &c_out, &v_out, this->regs[rd].read(), ~imm8, 1);
+				uint32_t current_rd = this->regs[rd].read();
+				this->reg_a.write(current_rd);
+				add_c(&y, &c_out, &v_out, current_rd, ~imm8, 1);
 				this->regs[rd].write(y);
 				if (!this->in_it_block())
 				{
@@ -882,45 +915,69 @@ void Cpu::execute_op16_special_data_branch(uint16_t ins16)
 	switch (op)
 	{
 		case 0 ... 3: /* ADD REG A6.7.4/T2 */
-			rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
-			rm = GET_FIELD(ins16, 3, 4);
-			add_c(&y, &c_out, &v_out, this->regs[rd].read(), this->regs[rm].read(), 0);
-			this->regs[rd].write(y);
-			if (!this->in_it_block())
 			{
-				this->update_flags(y, c_out, v_out);
+				rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
+				rm = GET_FIELD(ins16, 3, 4);
+				uint32_t current_rd = this->regs[rd].read();
+				uint32_t current_rm = this->regs[rm].read();
+				this->reg_a.write(current_rd);
+				this->reg_b.write(current_rm);
+				add_c(&y, &c_out, &v_out, current_rd, current_rm, 0);
+				this->regs[rd].write(y);
+				if (!this->in_it_block())
+				{
+					this->update_flags(y, c_out, v_out);
+				}
+				this->pc += 2;
 			}
-			this->pc += 2;
 			break;
 		case 5 ... 7: /* CMP REG A6.7.28/T2 */
-			rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
-			rm = GET_FIELD(ins16, 3, 4);
-			add_c(&y, &c_out, &v_out, this->regs[rd].read(), this->regs[rm].read(), 0);
-			if (!this->in_it_block())
 			{
-				this->update_flags(y, c_out, v_out);
+				rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
+				rm = GET_FIELD(ins16, 3, 4);
+				uint32_t current_rd = this->regs[rd].read();
+				uint32_t current_rm = this->regs[rm].read();
+				this->reg_a.write(current_rd);
+				this->reg_b.write(current_rm);
+				add_c(&y, &c_out, &v_out, current_rd, current_rm, 0);
+				if (!this->in_it_block())
+				{
+					this->update_flags(y, c_out, v_out);
+				}
+				this->pc += 2;
 			}
-			this->pc += 2;
 			break;
 		case 8 ... 11: /* MOV REG A6.7.76/T1 */
-			rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
-			rm = GET_FIELD(ins16, 3, 4);
-			add_c(&y, &c_out, &v_out, 0, this->regs[rm].read(), 0);
-			this->regs[rd].write(y);
-			if (!this->in_it_block())
 			{
-				this->update_flags(y, c_out, v_out);
+				rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
+				rm = GET_FIELD(ins16, 3, 4);
+				uint32_t current_rm = this->regs[rm].read();
+				this->reg_b.write(current_rm);
+				add_c(&y, &c_out, &v_out, 0, current_rm, 0);
+				this->regs[rd].write(y);
+				if (!this->in_it_block())
+				{
+					this->update_flags(y, c_out, v_out);
+				}
+				this->pc += 2;
 			}
-			this->pc += 2;
 			break;
 		case 12 ... 13: /* BRANCH AND EXCHANGE A6.7.20/T1 */
-			rm = GET_FIELD(ins16, 3, 4);
-			this->pc = this->regs[rm].read();
-			break;
+			{
+				rm = GET_FIELD(ins16, 3, 4);
+				uint32_t current_rm = this->regs[rm].read();
+				this->reg_b.write(current_rm);
+				this->pc = current_rm;
+				break;
+			}
 		case 14 ... 15: /* BRANCH WITH LINK AND EXCHANGE */
-			rm = GET_FIELD(ins16, 3, 4);
-			this->regs[LR].write(this->pc + 2);
-			this->pc = this->regs[rm].read();
+			{
+				rm = GET_FIELD(ins16, 3, 4);
+				this->regs[LR].write(this->pc + 2);
+				uint32_t current_rm = this->regs[rm].read();
+				this->reg_b.write(current_rm);
+				this->pc = current_rm;
+			}
 			break;
 		default: /* includes case '4' */
 			this->report_error("undefined opcode", "OP16_SPECIAL_DATA_BRANCH");
@@ -1008,6 +1065,11 @@ void Cpu::execute_op32_ldmia(uint16_t ins16, uint16_t ins16_b)
 	uint32_t d_addr = this->regs[rn].read();
 	this->reg_a.write(d_addr);
 	unsigned int p = GET_BIT(ins16_b, 15);
+	uint32_t f_addr = d_addr + 4*bit_count(register_list);
+	if (w == 1)
+	{
+		this->regs[rn].write(f_addr);
+	}
 	for (unsigned int i = 1; i < 15; ++i)
 	{
 		if (GET_BIT(register_list, i) == 1)
@@ -1020,10 +1082,6 @@ void Cpu::execute_op32_ldmia(uint16_t ins16, uint16_t ins16_b)
 	{
 		this->pc = this->ram.read32(d_addr);
 		d_addr += 4;
-	}
-	if (w == 1)
-	{
-		this->regs[rn].write(d_addr);
 	}
 	if (p == 0)
 	{
@@ -1067,13 +1125,17 @@ void Cpu::execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b)
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int register_list = ins16_b;
 	unsigned int register_count = bit_count(register_list);
-	uint32_t d_addr_base = this->regs[rn].read() - 4*register_count;
+	uint32_t current_rn = this->regs[rn].read();
+	this->reg_a.write(current_rn);
+	uint32_t d_addr_base = current_rn - 4*register_count;
 	uint32_t d_addr = d_addr_base;
 	for (unsigned int i = 0; i < 15; ++i)
 	{
 		if (GET_BIT(register_list, i) == 1)
 		{
-			this->ram.write32(d_addr, this->regs[i].read());
+			uint32_t val = this->regs[i].read();
+			this->reg_a.write(val);
+			this->ram.write32(d_addr, val);
 			d_addr += 4;
 		}
 	}
@@ -1086,14 +1148,16 @@ void Cpu::execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b)
 
 void Cpu::execute_op32_ldmdb(uint16_t ins16, uint16_t ins16_b)
 {
-	/* STMDB A6.7.41/T1 */
+	/* LDMDB A6.7.41/T1 */
 	CPU_LOG_TRACE("OP32_LDMDB\n");
 	this->pc += 4;
 	unsigned int w = GET_BIT(ins16, 5);
 	unsigned int rn = GET_FIELD(ins16, 0, 4);
 	unsigned int register_list = ins16_b;
 	unsigned int register_count = bit_count(register_list);
-	uint32_t d_addr_base = this->regs[rn].read() - 4*register_count;
+	uint32_t current_rn = this->regs[rn].read();
+	this->reg_a.write(current_rn);
+	uint32_t d_addr_base = current_rn - 4*register_count;
 	uint32_t d_addr = d_addr_base;
 	for (unsigned int i = 0; i < 15; ++i)
 	{
@@ -1204,6 +1268,7 @@ void Cpu::execute_op32_data_plain_imm(uint16_t ins16, uint16_t ins16_b)
 		unsigned int imm16 = imm8 | (imm3 << 8) | (i << 11) | (imm4 << 12);
 		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
 		uint32_t src = this->regs[rd].read();
+		this->reg_b.write(src);
 		uint32_t val = (src & 0xffff) | (imm16 << 16);
 		this->regs[rd].write(val);
 	}
@@ -1218,7 +1283,7 @@ void Cpu::execute_op32_data_plain_imm(uint16_t ins16, uint16_t ins16_b)
 			this->report_error("unsupported BFX", "OP32_DATA_PLAIN_IMM");
 		}
 		else
-		{ /* BFI A6.7.114/T1 */
+		{ /* BFI A6.7.14/T1 */
 			unsigned int rd = GET_FIELD(ins16_b, 8, 4);
 			unsigned int imm2 = GET_FIELD(ins16_b, 6, 2);
 			unsigned int imm3 = GET_FIELD(ins16_b, 12, 3);
@@ -1226,8 +1291,11 @@ void Cpu::execute_op32_data_plain_imm(uint16_t ins16, uint16_t ins16_b)
 			unsigned int lsbit = imm2 | (imm3 << 2);
 			unsigned int width = msbit - lsbit + 1;
 			uint32_t mask = 0xffffffffU >> (32 - width);
-			uint32_t field = this->regs[rn].read() & mask;
+			uint32_t current_rn = this->regs[rn].read();
+			uint32_t field = current_rn & mask;
 			uint32_t val = this->regs[rd].read();
+			this->reg_a.write(val);
+			this->reg_b.write(current_rn);
 			val = val & ~(mask << lsbit);
 			val = val | (field << lsbit);
 			this->regs[rd].write(val);
@@ -1259,7 +1327,11 @@ void Cpu::execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b)
 		unsigned int s = GET_BIT(ins16, 4);
 		uint32_t y;
 		unsigned c_out;
-		shift_c(&y, &c_out, this->regs[rn].read(), SRType_LSL, this->regs[rm].read(), this->flags[C]);
+		uint32_t current_rn = this->regs[rn].read();
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_a.write(current_rm);
+		this->reg_b.write(current_rn);
+		shift_c(&y, &c_out, current_rn, SRType_LSL, current_rm, this->flags[C]);
 		this->regs[rd].write(y);
 		if (s == 1)
 		{
@@ -1281,7 +1353,11 @@ void Cpu::execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b)
 		unsigned int s = GET_BIT(ins16, 4);
 		uint32_t y;
 		unsigned c_out;
-		shift_c(&y, &c_out, this->regs[rn].read(), SRType_LSR, this->regs[rm].read(), this->flags[C]);
+		uint32_t current_rn = this->regs[rn].read();
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_a.write(current_rm);
+		this->reg_b.write(current_rn);
+		shift_c(&y, &c_out, current_rn, SRType_LSR, current_rm, this->flags[C]);
 		this->regs[rd].write(y);
 		if (s == 1)
 		{
@@ -1295,7 +1371,11 @@ void Cpu::execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b)
 		unsigned int s = GET_BIT(ins16, 4);
 		uint32_t y;
 		unsigned c_out;
-		shift_c(&y, &c_out, this->regs[rn].read(), SRType_ASR, this->regs[rm].read(), this->flags[C]);
+		uint32_t current_rn = this->regs[rn].read();
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_a.write(current_rm);
+		this->reg_b.write(current_rn);
+		shift_c(&y, &c_out, current_rn, SRType_ASR, current_rm, this->flags[C]);
 		this->regs[rd].write(y);
 		if (s == 1)
 		{
@@ -1317,7 +1397,11 @@ void Cpu::execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b)
 		unsigned int s = GET_BIT(ins16, 4);
 		uint32_t y;
 		unsigned c_out;
-		shift_c(&y, &c_out, this->regs[rn].read(), SRType_ROR, this->regs[rm].read(), this->flags[C]);
+		uint32_t current_rn = this->regs[rn].read();
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_a.write(current_rm);
+		this->reg_b.write(current_rn);
+		shift_c(&y, &c_out, current_rn, SRType_ROR, current_rm, this->flags[C]);
 		this->regs[rd].write(y);
 		if (s == 1)
 		{
@@ -1377,6 +1461,7 @@ void Cpu::execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b)
 	unsigned int u = GET_BIT(ins16_b, 9);
 	unsigned int w = GET_BIT(ins16_b, 8);
 	uint32_t d_addr = this->regs[rn].read();
+	this->reg_a.write(d_addr);
 	uint32_t offset_addr;
 	if (u == 1)
 	{
@@ -1390,7 +1475,9 @@ void Cpu::execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b)
 	{
 		d_addr = offset_addr;
 	}
-	this->ram.write32(d_addr, this->regs[rt].read());
+	uint32_t current_rt = this->regs[rt].read();
+	this->reg_b.write(current_rt);
+	this->ram.write32(d_addr, current_rt);
 	if (w == 1)
 	{
 		this->regs[rn].write(offset_addr);
@@ -1410,6 +1497,7 @@ void Cpu::execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b)
 	unsigned int u = GET_BIT(ins16_b, 9);
 	unsigned int w = GET_BIT(ins16_b, 8);
 	uint32_t d_addr = this->regs[rn].read();
+	this->reg_a.write(d_addr);
 	uint32_t offset_addr;
 	if (u == 1)
 	{
@@ -1424,6 +1512,8 @@ void Cpu::execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b)
 		d_addr = offset_addr;
 	}
 	uint32_t data = this->ram.read32(d_addr);
+	uint32_t current_rt = this->regs[rt].read();
+	this->reg_b.write(current_rt);
 	if (w == 1)
 	{
 		this->regs[rn].write(offset_addr);
@@ -1442,6 +1532,7 @@ void Cpu::execute_op32_ld_literal_pool(uint16_t ins16, uint16_t ins16_b)
 	uint32_t base = (this->pc & 0xfffffffcU) + 4;
 	uint32_t addr = (u == 1) ? base + imm32 : base - imm32;
 	uint32_t data = this->ram.read32(addr);
+	this->reg_a.write(this->pc + 4);
 	if (rt == 15)
 	{
 		this->pc = data;
