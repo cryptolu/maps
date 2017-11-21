@@ -356,6 +356,10 @@ Step_status Cpu::step(void)
 		{
 			this->execute_op16_ldmia(ins16);
 		}
+		else if (TEST_INS16(OP16_STR_IMM))
+		{
+			this->execute_op16_str_imm(ins16);
+		}
 		else if (TEST_INS16(OP16_COND_BRANCH))
 		{
 			this->execute_op16_cond_branch(ins16);
@@ -1010,6 +1014,22 @@ void Cpu::execute_op16_ldmia(uint16_t ins16)
 	}
 }
 
+
+void Cpu::execute_op16_str_imm(uint16_t ins16)
+{
+	/* store word immediate A6.7.119/T1 */
+	CPU_LOG_TRACE("OP16_STR_IMM\n");
+	this->pc += 2;
+	unsigned int rn = GET_FIELD(ins16, 3, 3);
+	unsigned int rt = GET_FIELD(ins16, 0, 3);
+	uint32_t current_rn = this->regs[rn].read();
+	this->reg_a.write(current_rn);
+	uint32_t imm32 = GET_FIELD(ins16, 6, 5) << 2;
+	uint32_t d_addr = current_rn + imm32;
+	uint32_t current_rt = this->regs[rt].read();
+	this->reg_b.write(current_rt);
+	this->ram.write32(d_addr, current_rt);
+}
 
 void Cpu::execute_op16_nop(void)
 {

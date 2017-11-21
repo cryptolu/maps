@@ -106,6 +106,7 @@ class Cpu
 		void execute_op16_cond_branch(uint16_t ins16);
 		void execute_op16_ld_literal_pool(uint16_t ins16);
 		void execute_op32_ldmia(uint16_t ins16, uint16_t ins16_b);
+		void execute_op16_str_imm(uint16_t ins16);
 		void execute_op32_data_mod_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_stmia(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b);
