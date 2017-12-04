@@ -2,6 +2,8 @@
 
 #define CR "\n\t"
 
+#define CORRECT_LEAKAGE
+
 void sec_simon_v02(uint32_t *buffer, uint32_t rk_masked)
 {
 	/* buffer structure:
@@ -34,10 +36,14 @@ void sec_simon_v02(uint32_t *buffer, uint32_t rk_masked)
         "and r9, r6, r5, ror 24" CR
         "eor r6, r10, r8" CR
         "eor r6, r6, r9" CR
+		#ifdef CORRECT_LEAKAGE
 		"mov r8, 0" CR /* correct leakage from next instruction */
+		#endif
         "and r8, r7, r4, ror 24" CR
         "eor r6, r6, r8" CR
+		#ifdef CORRECT_LEAKAGE
 		"mov r8, 0" CR /* correct leakage from next instruction */
+		#endif
         "and r8, r7, r5, ror 24" CR
         "eor r6, r6, r8" CR
         /* SecAnd - end */

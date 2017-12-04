@@ -344,6 +344,10 @@ Step_status Cpu::step(void)
 		{
 			this->execute_op16_ld_reg_sp_rel(ins16);
 		}
+		else if (TEST_INS16(OP16_LD_IMM))
+		{
+			this->execute_op16_ld_imm(ins16);
+		}
 		else if (TEST_INS16(OP16_SHIFT_IMM_ADD_SUB_MOV_CMP))
 		{
 			this->execute_op16_shift_imm_add_sub_mov_cmp(ins16);
@@ -415,13 +419,14 @@ unsigned long int Cpu::run(uint32_t from, uint32_t until, unsigned long int limi
 			{
 				break;
 			}
-			if (this->step() == -1)
+			if (this->step() == STEP_BKPT)
 			{
 				/* instruction was a breakpoint */
 				fprintf(stderr, "---- Hit breakpoint at address 0x%08x\n", p_addr);
 				this->dump_regs();
 				/* a breakpoint instruction does not increment the PC, but here we are
-				   using the "BKPT" instruction in a different way for debugging */
+				   using the "BKPT" instruction in a different way: to generate a
+				   partial trace for debugging */
 				this->pc = (p_addr + 2);
 			}
 			#ifdef CPU_DEBUG_TRACE
@@ -1071,6 +1076,21 @@ void Cpu::execute_op16_ld_literal_pool(uint16_t ins16)
 	this->regs[rt].write(data);
 }
 
+void Cpu::execute_op16_ld_imm(uint16_t ins16)
+{
+	/* LDR (imm) A6.7.42/T1 */
+	CPU_LOG_TRACE("OP16_LD_IMM\n");
+	this->pc += 2;
+	unsigned int rt = GET_FIELD(ins16, 0, 3);
+	unsigned int rn = GET_FIELD(ins16, 3, 3);
+	unsigned int imm5 = GET_FIELD(ins16, 6, 5);
+	uint32_t imm32 = imm5 << 2;
+	uint32_t current_rn = this->regs[rn].read();
+	this->reg_a.write(current_rn);
+	uint32_t d_addr = current_rn + imm32;
+	uint32_t data = this->ram.read32(d_addr);
+	this->regs[rt].write(data);
+}
 
 /******************************************************************************
  * 32-bit instructions

@@ -29,6 +29,7 @@ import sys
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+import os.path
 
 parser = argparse.ArgumentParser(description = "t_test simulation analysis")
 parser.add_argument("t_test_filename", help = "name of the .npy file containing the t_test results")
@@ -37,6 +38,8 @@ parser.add_argument("--trace_index", help = "name of the trace index file")
 args = parser.parse_args()
 t_test_filename = args.t_test_filename
 trace_index_filename = args.trace_index
+pdf_filename = os.path.basename(t_test_filename) + ".pdf"
+print(pdf_filename)
 
 t = np.load(t_test_filename)
 
@@ -68,5 +71,11 @@ if trace_index_filename is not None:
 
 plt.axhline(y = 4.5, color = 'r', linestyle = '--')
 plt.axhline(y = -4.5, color = 'r', linestyle = '--')
+plt.xlabel("time [samples]")
+plt.ylabel("t value")
+plt.annotate("4.5", xy = (1, 4.5), xytext = (4, 0), xycoords=('axes fraction', 'data'), textcoords='offset points', color = 'r')
+plt.annotate("-4.5", xy = (1, -4.5), xytext = (4, 0), xycoords=('axes fraction', 'data'), textcoords='offset points', color = 'r')
 plt.plot(t)
+plt.savefig("t_test_0000.pdf")
+
 plt.show()

@@ -27,6 +27,7 @@ void experiment(uint16_t *buffer, uint32_t *rk_masked)
         "eor r3, r7" CR
         "eor r2, r2, r4, ror 30" CR
         "eor r3, r3, r5, ror 30" CR
+		"ldr r7, [%[rk_masked], 4]" CR
         "ldm %[rk_masked]!, {r6, r7}" CR
         "eor r2, r2, r6" CR
         "eor r3, r3, r7" CR
@@ -215,7 +216,10 @@ void experiment(uint16_t *buffer, uint32_t *rk_masked)
         "bne dec_step" CR
 		/* store results */
 		"pop {%[buffer]}" CR
-		"stm %[buffer], {r2-r5}" CR
+        "str r2, [%[buffer], 0]" CR
+        "str r3, [%[buffer], 4]" CR
+        "str r4, [%[buffer], 8]" CR
+        "str r5, [%[buffer], 12]" CR
 
         /* test */
 		"add r2, r1, r2" CR
