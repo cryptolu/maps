@@ -308,9 +308,17 @@ Step_status Cpu::step(void)
 		{
 			this->execute_op32_ldr_imm(ins16, ins16_b);
 		}
+		else if (TEST_INS32(OP32_LDRB_IMM))
+		{
+			this->execute_op32_ldrb_imm(ins16, ins16_b);
+		}
 		else if (TEST_INS32(OP32_LD_LITERAL_POOL))
 		{
 			this->execute_op32_ld_literal_pool(ins16, ins16_b);
+		}
+		else if (TEST_INS32(OP32_LDRB_LITERAL))
+		{
+			this->execute_op32_ldrb_literal(ins16, ins16_b);
 		}
 		else
 		{
@@ -371,6 +379,10 @@ Step_status Cpu::step(void)
 		else if (TEST_INS16(OP16_LD_LITERAL_POOL))
 		{
 			this->execute_op16_ld_literal_pool(ins16);
+		}
+		else if (TEST_INS16(OP16_LDRB_IMM))
+		{
+			this->execute_op16_ldrb_imm(ins16);
 		}
 		else if (TEST_INS16(OP16_NOP))
 		{
@@ -1092,6 +1104,21 @@ void Cpu::execute_op16_ld_imm(uint16_t ins16)
 	this->regs[rt].write(data);
 }
 
+void Cpu::execute_op16_ldrb_imm(uint16_t ins16)
+{
+	/* LDRB (imm) A6.7.45/T1 */
+	CPU_LOG_TRACE("OP16_LDRB_IMM\n");
+	this->pc += 2;
+	unsigned int rt = GET_FIELD(ins16, 0, 3);
+	unsigned int rn = GET_FIELD(ins16, 3, 3);
+	unsigned int imm5 = GET_FIELD(ins16, 6, 5);
+	uint32_t current_rn = this->regs[rn].read();
+	this->reg_a.write(current_rn);
+	uint32_t d_addr = current_rn + imm5;
+	uint32_t data = this->ram.read8(d_addr);
+	this->regs[rt].write(data);
+}
+
 /******************************************************************************
  * 32-bit instructions
  ******************************************************************************/
@@ -1561,6 +1588,22 @@ void Cpu::execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b)
 	this->regs[rt].write(data);
 }
 
+void Cpu::execute_op32_ldrb_imm(uint16_t ins16, uint16_t ins16_b)
+{
+	/* LDRB (imm) A6.7.45/T2 */
+	CPU_LOG_TRACE("OP32_LDRB_IMM\n");
+	this->pc += 4;
+	unsigned int rn = GET_FIELD(ins16, 0, 4);
+	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
+	unsigned int imm12 = GET_FIELD(ins16_b, 0, 12);
+	uint32_t current_rn = this->regs[rn].read();
+	this->reg_a.write(current_rn);
+	uint32_t d_addr = current_rn + imm12;
+	uint32_t data = this->ram.read8(d_addr);
+	uint32_t current_rt = this->regs[rt].read();
+	this->reg_b.write(current_rt);
+	this->regs[rt].write(data);
+}
 
 void Cpu::execute_op32_ld_literal_pool(uint16_t ins16, uint16_t ins16_b)
 {
@@ -1582,4 +1625,19 @@ void Cpu::execute_op32_ld_literal_pool(uint16_t ins16, uint16_t ins16_b)
 		this->regs[rt].write(data);
 		this->pc += 4;
 	}
+}
+
+void Cpu::execute_op32_ldrb_literal(uint16_t ins16, uint16_t ins16_b)
+{
+	/* LDRB (literal pool) A6.7.46/T1 */
+	CPU_LOG_TRACE("OP32_LDRB_LITERAL\n");
+	this->pc += 4;
+	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
+	unsigned int imm12 = GET_FIELD(ins16_b, 0, 12);
+	unsigned int u = GET_BIT(ins16, 7);
+	this->reg_a.write(this->pc);
+	uint32_t base = this->pc & 0xfffffffcU;
+	uint32_t addr = (u == 1) ? base + imm12 : base - imm12;
+	uint32_t data = this->ram.read8(addr);
+	this->regs[rt].write(data);
 }

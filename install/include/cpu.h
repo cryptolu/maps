@@ -108,6 +108,7 @@ class Cpu
 		void execute_op32_ldmia(uint16_t ins16, uint16_t ins16_b);
 		void execute_op16_str_imm(uint16_t ins16);
 		void execute_op16_ld_imm(uint16_t ins16);
+		void execute_op16_ldrb_imm(uint16_t ins16);
 		void execute_op32_data_mod_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_stmia(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b);
@@ -118,7 +119,9 @@ class Cpu
 		void execute_op32_branch_misc(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b);
+		void execute_op32_ldrb_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ld_literal_pool(uint16_t ins16, uint16_t ins16_b);
+		void execute_op32_ldrb_literal(uint16_t ins16, uint16_t ins16_b);
 
 	public:
 		Cpu(Options &options);

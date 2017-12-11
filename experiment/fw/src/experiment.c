@@ -240,13 +240,31 @@ void experiment(uint16_t *buffer, uint32_t *rk_masked)
 		"lsr.w r8, r6, r4" CR
 		"asr.w r8, r6, r4" CR
 		"ror.w r8, r6, r4" CR
-/*
-		"ldr r2, [sp, #0]" CR
-        "sub r13, r13, #0" CR
-        "add r13, r13, #0" CR
-		"str r2, [sp, #0]" CR
-*/
 
+		"mov r10, #1" CR
+		"enc_step:" CR
+		"ror r6, r4, 31" CR
+		"and r8, r6, r4, ror 24" CR
+		"orr %[buffer], %[buffer], %[buffer]" CR /* L */
+		"ror r7, r5, 31" CR
+		"orn r6, r6, r5, ror 24" CR
+		"eor r6, r6, r8" CR
+		"eor r8, %[buffer], %[buffer]" CR /* L */
+		//"orr %[buffer], %[buffer], %[buffer]" CR /* corrected all undetected leakages! */
+		"and r8, r7, r4, ror 24" CR // maybe this one is leaking
+		"orr %[buffer], %[buffer], %[buffer]" CR /* L */
+		"orn r9, r7, r5, ror 24" CR
+		"eor r7, r9, r8" CR
+		"orr %[buffer], %[buffer], %[buffer]" CR /* L */
+		"eor r2, r6" CR
+		"eor r2, r2, r4, ror 30" CR
+		"eor r3, r7, r3" CR // maybe this one is leaking too
+		"eor r3, r3, r5, ror 30" CR
+
+		"toto:" CR
+		//"ldrb r2, [%[buffer]]" CR
+		//"ldrb r3, [%[buffer], 1]" CR
+		"ldrb r2, toto" CR
     :
     : [buffer] "r" (buffer), [rk_masked] "r" (rk_masked)
     : "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r12", "r14"
