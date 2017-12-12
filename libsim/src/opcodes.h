@@ -95,6 +95,18 @@
 #define OP16_REVSH_MASK 0xffc0
 #define OP16_REVSH_VAL  0xbac0
 
+#define OP16_UXTB_MASK 0xffc0
+#define OP16_UXTB_VAL  0xb2c0
+
+#define OP16_UXTH_MASK 0xffc0
+#define OP16_UXTH_VAL  0xb280
+
+#define OP16_SXTB_MASK 0xffc0
+#define OP16_SXTB_VAL  0xb240
+
+#define OP16_SXTH_MASK 0xffc0
+#define OP16_SXTH_VAL  0xb200
+
 #define OP16_BREAKPOINT_MASK 0xff00
 #define OP16_BREAKPOINT_VAL  0xbe00
 

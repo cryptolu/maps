@@ -275,6 +275,14 @@ void experiment(uint16_t *buffer, uint32_t *rk_masked)
 		"rev r2, r3" CR
 		"rev16 r2, r3" CR
 		"revsh r2, r5" CR
+		"uxtb r2, r9, ror 8" CR
+		"uxth r2, r9, ror 8" CR
+		"sxth r2, r9, ror 8" CR
+		"sxtb r2, r9, ror 8" CR
+		"uxtb r2, r3" CR
+		"uxth r2, r3" CR
+		"sxtb r2, r3" CR
+		"sxth r2, r3" CR
 
     :
     : [buffer] "r" (buffer), [rk_masked] "r" (rk_masked)

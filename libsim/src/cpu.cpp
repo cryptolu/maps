@@ -400,6 +400,22 @@ Step_status Cpu::step(void)
 		{
 			this->execute_op16_revsh(ins16);
 		}
+		else if (TEST_INS16(OP16_UXTB))
+		{
+			this->execute_op16_uxtb(ins16);
+		}
+		else if (TEST_INS16(OP16_UXTH))
+		{
+			this->execute_op16_uxth(ins16);
+		}
+		else if (TEST_INS16(OP16_SXTB))
+		{
+			this->execute_op16_sxtb(ins16);
+		}
+		else if (TEST_INS16(OP16_SXTH))
+		{
+			this->execute_op16_sxth(ins16);
+		}
 		else if (TEST_INS16(OP16_NOP))
 		{
 			this->execute_op16_nop();
@@ -1193,6 +1209,71 @@ void Cpu::execute_op16_revsh(uint16_t ins16)
 	this->regs[rd].write(res);
 }
 
+void Cpu::execute_op16_uxtb(uint16_t ins16)
+{
+	/* UXTB A6.7.149/T1 */
+	CPU_LOG_TRACE("OP16_UXTB\n");
+	this->pc += 2;
+	unsigned rm = GET_FIELD(ins16, 3, 3);
+	unsigned rd = GET_FIELD(ins16, 0, 3);
+	uint32_t current_rm = this->regs[rm].read();
+	this->reg_b.write(current_rm);
+	this->regs[rd].write(current_rm & 0xff);
+}
+
+void Cpu::execute_op16_uxth(uint16_t ins16)
+{
+	/* UXTB A6.7.150/T1 */
+	CPU_LOG_TRACE("OP16_UXTH\n");
+	this->pc += 2;
+	unsigned rm = GET_FIELD(ins16, 3, 3);
+	unsigned rd = GET_FIELD(ins16, 0, 3);
+	uint32_t current_rm = this->regs[rm].read();
+	this->reg_b.write(current_rm);
+	this->regs[rd].write(current_rm & 0xffff);
+}
+
+void Cpu::execute_op16_sxtb(uint16_t ins16)
+{
+	/* SXTB A6.7.137/T1 */
+	CPU_LOG_TRACE("OP16_SXTB\n");
+	this->pc += 2;
+	unsigned rm = GET_FIELD(ins16, 3, 3);
+	unsigned rd = GET_FIELD(ins16, 0, 3);
+	uint32_t current_rm = this->regs[rm].read();
+	this->reg_b.write(current_rm);
+	if (GET_BIT(current_rm, 7) == 1)
+	{
+		current_rm |= 0xffffff00;
+	}
+	else
+	{
+		current_rm &= 0x000000ff;
+	}
+	this->regs[rd].write(current_rm);
+}
+
+void Cpu::execute_op16_sxth(uint16_t ins16)
+{
+	/* SXTH A6.7.138/T1 */
+	CPU_LOG_TRACE("OP16_SXTH\n");
+	this->pc += 2;
+	unsigned rm = GET_FIELD(ins16, 3, 3);
+	unsigned rd = GET_FIELD(ins16, 0, 3);
+	uint32_t current_rm = this->regs[rm].read();
+	this->reg_b.write(current_rm);
+	if (GET_BIT(current_rm, 7) == 1)
+	{
+		current_rm |= 0xffff0000;
+	}
+	else
+	{
+		current_rm &= 0x0000ffff;
+	}
+	this->regs[rd].write(current_rm);
+}
+
+
 /******************************************************************************
  * 32-bit instructions
  ******************************************************************************/
@@ -1480,12 +1561,36 @@ void Cpu::execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b)
 		}
 	}
 	else if ((op1 == 0) && (GET_BIT(op2, 3) == 1))
-	{ /* SXTH */
-		this->report_error("instruction SXTH not supported", "OP32_DATA_REG");
+	{ /* SXTH A6.7.138/T2 */
+		unsigned int rm = GET_FIELD(ins16_b, 0, 4);
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		unsigned int rot = GET_FIELD(ins16_b, 4, 2) << 3;
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_a.write(this->pc);
+		this->reg_b.write(current_rm);
+		uint32_t y;
+		ror(&y, current_rm, rot);
+		if (GET_BIT(y, 15) == 1)
+		{
+			y |= 0xffff0000;
+		}
+		else
+		{
+			y &= 0x0000ffff;
+		}
+		this->regs[rd].write(y);
 	}
 	else if ((op1 == 1) && (GET_BIT(op2, 3) == 1))
-	{ /* UXTH */
-		this->report_error("instruction UXTH not supported", "OP32_DATA_REG");
+	{ /* UXTH A6.7.150/T2 */
+		unsigned int rm = GET_FIELD(ins16_b, 0, 4);
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		unsigned int rot = GET_FIELD(ins16_b, 4, 2) << 3;
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_a.write(this->pc);
+		this->reg_b.write(current_rm);
+		uint32_t y;
+		ror(&y, current_rm, rot);
+		this->regs[rd].write(y & 0xffff);
 	}
 	else if ((op1 == 2) || (op1 == 3))
 	{ /* LSR A6.7.60/T2 */
@@ -1524,15 +1629,39 @@ void Cpu::execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b)
 		}
 	}
 	else if ((op1 == 4) && (GET_BIT(op2, 3) == 1))
-	{ /* SXTB */
-		this->report_error("instruction SXTB not supported", "OP32_DATA_REG");
+	{ /* SXTB A6.7.137/T2 */
+		unsigned int rm = GET_FIELD(ins16_b, 0, 4);
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		unsigned int rot = GET_FIELD(ins16_b, 4, 2) << 3;
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_a.write(this->pc);
+		this->reg_b.write(current_rm);
+		uint32_t y;
+		ror(&y, current_rm, rot);
+		if (GET_BIT(y, 7) == 1)
+		{
+			y |= 0xffffff00;
+		}
+		else
+		{
+			y &= 0x000000ff;
+		}
+		this->regs[rd].write(y);
 	}
 	else if ((op1 == 5) && (GET_BIT(op2, 3) == 1))
-	{ /* UXTB */
-		this->report_error("instruction UXTB not supported", "OP32_DATA_REG");
+	{ /* UXTB A6.7.149/T2 */
+		unsigned int rm = GET_FIELD(ins16_b, 0, 4);
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		unsigned int rot = GET_FIELD(ins16_b, 4, 2) << 3;
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_a.write(this->pc);
+		this->reg_b.write(current_rm);
+		uint32_t y;
+		ror(&y, current_rm, rot);
+		this->regs[rd].write(y & 0xff);
 	}
 	else if ((op1 == 6 || op1 == 7) && (op2 == 0))
-	{ /* ROR A&.7.104/T2 */
+	{ /* ROR A6.7.104/T2 */
 		unsigned int rm = GET_FIELD(ins16_b, 0, 4);
 		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
 		unsigned int s = GET_BIT(ins16, 4);

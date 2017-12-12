@@ -112,6 +112,10 @@ class Cpu
 		void execute_op16_rev(uint16_t ins16);
 		void execute_op16_rev16(uint16_t ins16);
 		void execute_op16_revsh(uint16_t ins16);
+		void execute_op16_uxtb(uint16_t ins16);
+		void execute_op16_uxth(uint16_t ins16);
+		void execute_op16_sxtb(uint16_t ins16);
+		void execute_op16_sxth(uint16_t ins16);
 		void execute_op32_data_mod_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_stmia(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_stmdb(uint16_t ins16, uint16_t ins16_b);
