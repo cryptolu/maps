@@ -43,3 +43,38 @@ It is best to start and modify an already exisiting simulator. The simulator mus
 1. void check_sec_algo(void): this function applies some test vectors and prints wether the test passes or not.
 2. void t_test_sec_algo(Options &options): this function runs the t_test by generating inputs and collecting traces
 3. a wrapper to call the FW function (that will be simulated). This wrapper (whose signature depends on the FW function) must write the arguments in the simulator memory and set the processor registers accordingly. Then, it starts the simulation. After the simulation, it must copy the results from the simulated memory.
+
+## Supporting more ARM v7-M instructions
+
+Follow those steps to support for an instruction in the simulator:
+
+1. Add the decoding and mask values in the file libsim/src/opcodes.h
+2. Decode the instruction in the the function step() in libsim/src/cpu.cpp
+3. Add the execution of the function in the same file
+4. Don't forget to add this new function to the list of methods in cpu.h
+
+The macros TEST_INS32 and TEST_INS16 simplify the decoding of the instruction
+Also, don't forget to validate the behaviour of the new simulated instruction, especially the behaviour
+of the pipeline registers reg_a and reg_b !
+
+## Validations
+
+Each instruction supported by the simulator must be validated against the RTL simulation. The RTL tree
+is not stored in this repository because it belongs to ARM Limited. Most of the procedure described
+below is only there for my own documentation.
+
+1. Add the new instruction in the file experiment.c in the simulator tree
+2. Execute make check > sim_trace.log 2>&1 in the fw build direction in the simulator tree
+3. Add the new instruction in the file leakage.c in the RTL tree
+4. Compile: make testcode TESTNAME=leakage
+5. Simulate: make run TESTNAME=leakage
+6. Convert the tarmac.log trace file into a register trace file: ../../../../../python/gen_trace.py > verilog_trace.log
+7. Copy the register trace file in the simulator tree: cp ~/Documents/repos/arm_v7m_leakage_simulator/rendered/sse050/logical/testbench/execution_tb/verilog_trace.log .
+8. Compare the simulator trace and the RTL trace. Either visually using gvim -d sim_trace.log verilog_trace.log, or using: ./../../python/compare_traces.py
+
+## Bugs/limitations
+
+Know limitations are:
+* I've tried to implement the strb instruction but I faced some strange delay effects in the register pipelines. As it
+was not really clear what was happening, I've removed the strb instruction. Feel free to add it back but just validate
+everything thouroghly.
