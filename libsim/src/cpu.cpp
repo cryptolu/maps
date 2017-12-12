@@ -1458,27 +1458,71 @@ void Cpu::execute_op32_data_plain_imm(uint16_t ins16, uint16_t ins16_b)
 	if (op == 0)
 	{
 		if (rn == 15)
-		{ /* ADR */
-			this->report_error("unsupported ADR(add)", "OP32_DATA_PLAIN_IMM");
+		{ /* ADR A6.7.7/T3 */
+			unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+			unsigned int imm8 = GET_FIELD(ins16_b, 0, 8);
+			unsigned int imm3 = GET_FIELD(ins16_b, 12, 3);
+			unsigned int i = GET_BIT(ins16, 10);
+			uint32_t imm32 = (i << 11) | (imm3 << 8) | imm8;
+			uint32_t res = (this->pc & 0xfffffffc) + imm32;
+			this->reg_a.write(this->pc);
+			this->regs[rd].write(res);
 		}
 		else
-		{ /* ADD (12-bit) */
-			this->report_error("unsupported ADD", "OP32_DATA_PLAIN_IMM");
+		{ /* ADD (12-bit) A6.7.3/T4 */
+			unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+			unsigned int imm8 = GET_FIELD(ins16_b, 0, 8);
+			unsigned int imm3 = GET_FIELD(ins16_b, 12, 3);
+			unsigned int i = GET_BIT(ins16, 10);
+			uint32_t imm32 = (i << 11) | (imm3 << 8) | imm8;
+			uint32_t current_rn = this->regs[rn].read();
+			this->reg_a.write(current_rn);
+			uint32_t y;
+			unsigned int c_out;
+			unsigned int v_out;
+			add_c(&y, &c_out, &v_out, current_rn, imm32, 0);
+			this->regs[rd].write(y);
 		}
 	}
 	else if (op == 4)
-	{ /* MOV (16-bit) */
-		this->report_error("unsupported MOV", "OP32_DATA_PLAIN_IMM");
+	{ /* MOV (16-bit) A6.7.75/T4 */
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		unsigned int imm8 = GET_FIELD(ins16_b, 0, 8);
+		unsigned int imm3 = GET_FIELD(ins16_b, 12, 3);
+		unsigned int imm4 = GET_FIELD(ins16, 0, 4);
+		unsigned int i = GET_BIT(ins16, 10);
+		uint32_t imm32 =  (imm4 << 12)| (i << 11) | (imm3 << 8) | imm8;
+		uint32_t current_rd = this->regs[rd].read();
+		this->reg_b.write(current_rd);
+		this->regs[rd].write(imm32);
 	}
 	else if (op == 10)
 	{
 		if (rn == 15)
-		{ /* ADR */
-			this->report_error("unsupported ADR(sub)", "OP32_DATA_PLAIN_IMM");
+		{ /* ADR A6.7.7/T2 */
+			unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+			unsigned int imm8 = GET_FIELD(ins16_b, 0, 8);
+			unsigned int imm3 = GET_FIELD(ins16_b, 12, 3);
+			unsigned int i = GET_BIT(ins16, 10);
+			uint32_t imm32 = (i << 11) | (imm3 << 8) | imm8;
+			uint32_t res = (this->pc & 0xfffffffc) - imm32;
+			this->reg_a.write(this->pc);
+			this->regs[rd].write(res);
 		}
 		else
-		{ /* SUB (12-bit) */
-			this->report_error("unsupported SUB", "OP32_DATA_PLAIN_IMM");
+		{ /* SUB (12-bit) A6.7.132/T4 */
+			unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+			unsigned int imm8 = GET_FIELD(ins16_b, 0, 8);
+			unsigned int imm3 = GET_FIELD(ins16_b, 12, 3);
+			unsigned int i = GET_BIT(ins16, 10);
+			uint32_t imm32 = (i << 11) | (imm3 << 8) | imm8;
+			uint32_t current_rn = this->regs[rn].read();
+			this->reg_a.write(current_rn);
+			uint32_t y;
+			unsigned int c_out;
+			unsigned int v_out;
+			add_c(&y, &c_out, &v_out, current_rn, ~imm32, 1);
+			this->regs[rd].write(y);
 		}
 	}
 	else if (op == 12)
@@ -1495,14 +1539,40 @@ void Cpu::execute_op32_data_plain_imm(uint16_t ins16, uint16_t ins16_b)
 		this->regs[rd].write(val);
 	}
 	else if (op == 20)
-	{ /* SBFX */
-		this->report_error("unsupported SBFX", "OP32_DATA_PLAIN_IMM");
+	{ /* SBFX A6.7.110/T1 */
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		unsigned int imm2 = GET_FIELD(ins16_b, 6, 2);
+		unsigned int imm3 = GET_FIELD(ins16_b, 12, 3);
+		unsigned int lsbit = (imm3 << 2) | imm2;
+		unsigned width = GET_FIELD(ins16_b, 0, 5) + 1;
+		uint32_t mask = 0xffffffffU >> (32 - width);
+		uint32_t current_rd = this->regs[rd].read();
+		this->reg_a.write(current_rd);
+		uint32_t current_rn = this->regs[rn].read();
+		this->reg_b.write(current_rn);
+		uint32_t field = (current_rn >> lsbit)  & mask;
+		if ((field >> (width - 1)) == 1)
+		{
+			field |= (0xffffffffU << width);
+		}
+		this->regs[rd].write(field);
+
 	}
 	else if (op == 22)
 	{
 		if (rn == 15)
-		{ /* BFC */
-			this->report_error("unsupported BFX", "OP32_DATA_PLAIN_IMM");
+		{ /* BFC A6.7.13/T1 */
+			unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+			unsigned int imm2 = GET_FIELD(ins16_b, 6, 2);
+			unsigned int imm3 = GET_FIELD(ins16_b, 12, 4);
+			unsigned int lsbit = (imm3 << 2) | imm2;
+			unsigned int msbit = GET_FIELD(ins16_b, 0, 5);
+			uint32_t mask = (0xffffffffU << (msbit + 1)) | (0xffffffffU >> (32 - lsbit));
+			uint32_t current_rd = this->regs[rd].read();
+			this->reg_a.write(current_rd);
+			this->reg_b.write(this->pc);
+			uint32_t next_rd = current_rd & mask;
+			this->regs[rd].write(next_rd);
 		}
 		else
 		{ /* BFI A6.7.14/T1 */
@@ -1524,8 +1594,19 @@ void Cpu::execute_op32_data_plain_imm(uint16_t ins16, uint16_t ins16_b)
 		}
 	}
 	else if (op == 28)
-	{ /* UBFX */
-		this->report_error("unsupported UBFX", "OP32_DATA_PLAIN_IMM");
+	{ /* UBFX A6.7.144/T1 */
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		unsigned int imm2 = GET_FIELD(ins16_b, 6, 2);
+		unsigned int imm3 = GET_FIELD(ins16_b, 12, 3);
+		unsigned int lsbit = (imm3 << 2) | imm2;
+		unsigned width = GET_FIELD(ins16_b, 0, 5) + 1;
+		uint32_t mask = 0xffffffffU >> (32 - width);
+		uint32_t current_rd = this->regs[rd].read();
+		this->reg_a.write(current_rd);
+		uint32_t current_rn = this->regs[rn].read();
+		this->reg_b.write(current_rn);
+		uint32_t field = (current_rn >> lsbit)  & mask;
+		this->regs[rd].write(field);
 	}
 	else
 	{
