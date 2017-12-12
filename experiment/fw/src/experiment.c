@@ -266,6 +266,15 @@ void experiment(uint16_t *buffer, uint32_t *rk_masked)
 		//"ldrb r3, [%[buffer], 1]" CR
 		//"ldrb r2, toto" CR
         "ldrb r2, [%[buffer]]" CR
+		"ldrd r2, r3, [%[buffer], 4]" CR
+		"rbit r2, r3" CR
+		"rev r3, r9" CR
+		"rev16 r3, r9" CR
+		"clz r3, r9" CR
+		"revsh r3, r9" CR
+		"rev r2, r3" CR
+		"rev16 r2, r3" CR
+		"revsh r2, r5" CR
 
     :
     : [buffer] "r" (buffer), [rk_masked] "r" (rk_masked)

@@ -320,6 +320,10 @@ Step_status Cpu::step(void)
 		{
 			this->execute_op32_ldrb_literal(ins16, ins16_b);
 		}
+		else if (TEST_INS32(OP32_LDRD_IMM))
+		{
+			this->execute_op32_ldrd_imm(ins16, ins16_b);
+		}
 		else
 		{
 			this->report_error("unsupported 32-bit instruction", "Cpu::step()");
@@ -383,6 +387,18 @@ Step_status Cpu::step(void)
 		else if (TEST_INS16(OP16_LDRB_IMM))
 		{
 			this->execute_op16_ldrb_imm(ins16);
+		}
+		else if (TEST_INS16(OP16_REV))
+		{
+			this->execute_op16_rev(ins16);
+		}
+		else if (TEST_INS16(OP16_REV16))
+		{
+			this->execute_op16_rev16(ins16);
+		}
+		else if (TEST_INS16(OP16_REVSH))
+		{
+			this->execute_op16_revsh(ins16);
 		}
 		else if (TEST_INS16(OP16_NOP))
 		{
@@ -1119,6 +1135,64 @@ void Cpu::execute_op16_ldrb_imm(uint16_t ins16)
 	this->regs[rt].write(data);
 }
 
+void Cpu::execute_op16_rev(uint16_t ins16)
+{
+	/* REV A6.7.100/T1 */
+	CPU_LOG_TRACE("OP16_REV\n");
+	this->pc += 2;
+	unsigned rm = GET_FIELD(ins16, 3, 3);
+	unsigned rd = GET_FIELD(ins16, 0, 3);
+	uint32_t current_rm = this->regs[rm].read();
+	this->reg_b.write(current_rm);
+	uint32_t rev = (current_rm & 0xff) << 24;
+	rev |= (((current_rm >>  8) & 0xff) << 16);
+	rev |= (((current_rm >> 16) & 0xff) << 8);
+	rev |= ((current_rm >> 24) & 0xff);
+	this->regs[rd].write(rev);
+}
+
+void Cpu::execute_op16_rev16(uint16_t ins16)
+{
+	/* REV16 A6.7.101/T1 */
+	CPU_LOG_TRACE("OP16_REV16\n");
+	this->pc += 2;
+	unsigned rm = GET_FIELD(ins16, 3, 3);
+	unsigned rd = GET_FIELD(ins16, 0, 3);
+	uint32_t current_rm = this->regs[rm].read();
+	this->reg_b.write(current_rm);
+	uint32_t rev = ((current_rm >> 16) & 0xff) << 24;
+	rev |= ((current_rm >> 24) & 0xff) << 16;
+	rev |= (current_rm & 0xff) << 8;
+	rev |= ((current_rm >> 8) & 0xff);
+	this->regs[rd].write(rev);
+}
+
+void Cpu::execute_op16_revsh(uint16_t ins16)
+{
+	/* REVSH A6.7.102/T1 */
+	CPU_LOG_TRACE("OP16_REVSH\n");
+	this->pc += 2;
+	unsigned rm = GET_FIELD(ins16, 3, 3);
+	unsigned rd = GET_FIELD(ins16, 0, 3);
+	uint32_t current_rm = this->regs[rm].read();
+	this->reg_b.write(current_rm);
+	uint32_t low_byte = (current_rm & 0xff);
+	uint32_t hig_byte = (current_rm >> 8) & 0xff;
+	uint32_t res;
+	if ((low_byte & 0x80) == 0x80)
+	{
+		/* low byte is negative, so sign extend */
+		res = 0xffff0000 | (low_byte << 8) | hig_byte;
+		
+	}
+	else
+	{
+		/* low byte is positive */
+		res = (low_byte << 8) | hig_byte;
+	}
+	this->regs[rd].write(res);
+}
+
 /******************************************************************************
  * 32-bit instructions
  ******************************************************************************/
@@ -1475,9 +1549,91 @@ void Cpu::execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b)
 			this->update_flags(y, c_out, this->flags[Z]);
 		}
 	}
-	else if ((op1 == 8 || op1 == 9 || op1 == 10 || op1 == 11) && (op2 == 8 || op2 == 9 || op2 == 10 || op2 == 11))
-	{ /* MISC A5-29 */
-		this->report_error("instruction MISC not supported", "OP32_DATA_REG");
+	else if ((op1 == 9) && (op2 == 10))
+	{
+		/* RBIT A6.7.99/T1 */
+		unsigned int rm = GET_FIELD(ins16_b, 0, 4);
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_b.write(current_rm);
+		uint32_t rev = 0;
+		for (unsigned int i = 0; i < 32; ++i)
+		{
+			rev <<= 1;
+			rev |= (current_rm & 1);
+			current_rm >>= 1;
+		}
+		this->regs[rd].write(rev);
+	}
+	else if ((op1 == 9) && (op2 == 8))
+	{
+		/* REV A6.7.100/T2 */
+		unsigned int rm = GET_FIELD(ins16_b, 0, 4);
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_b.write(current_rm);
+		uint32_t rev = (current_rm & 0xff) << 24;
+		rev |= (((current_rm >>  8) & 0xff) << 16);
+		rev |= (((current_rm >> 16) & 0xff) << 8);
+		rev |= ((current_rm >> 24) & 0xff);
+		this->regs[rd].write(rev);
+	}
+	else if ((op1 == 9) && (op2 == 9))
+	{
+		/* REV16 A6.7.101/T2 */
+		unsigned int rm = GET_FIELD(ins16_b, 0, 4);
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_b.write(current_rm);
+		uint32_t rev = ((current_rm >> 16) & 0xff) << 24;
+		rev |= ((current_rm >> 24) & 0xff) << 16;
+		rev |= (current_rm & 0xff) << 8;
+		rev |= ((current_rm >> 8) & 0xff);
+		this->regs[rd].write(rev);
+	}
+	else if ((op1 == 11) && (op2 == 8))
+	{
+		/* CLZ A6.7.24/T1 */
+		unsigned int rm = GET_FIELD(ins16_b, 0, 4);
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_b.write(current_rm);
+		uint32_t nlz = 0;
+		for (unsigned int i = 0; i < 32; ++i)
+		{
+			if (GET_BIT(current_rm, 31 - i) == 1)
+			{
+				break;
+			}
+			else
+			{
+				nlz++;
+			}
+		}
+		this->regs[rd].write(nlz);
+	}
+	else if ((op1 == 9) && (op2 == 11))
+	{
+		/* REVSH A6.7.102/T2 */
+		unsigned int rm = GET_FIELD(ins16_b, 0, 4);
+		unsigned int rd = GET_FIELD(ins16_b, 8, 4);
+		uint32_t current_rm = this->regs[rm].read();
+		this->reg_b.write(current_rm);
+		uint32_t low_byte = (current_rm & 0xff);
+		uint32_t hig_byte = (current_rm >> 8) & 0xff;
+		uint32_t res;
+		if ((low_byte & 0x80) == 0x80)
+		{
+			/* low byte is negative, so sign extend */
+			res = 0xffff0000 | (low_byte << 8) | hig_byte;
+			
+		}
+		else
+		{
+			/* low byte is positive */
+			res = (low_byte << 8) | hig_byte;
+		}
+		this->regs[rd].write(res);
 	}
 	else
 	{
@@ -1640,4 +1796,29 @@ void Cpu::execute_op32_ldrb_literal(uint16_t ins16, uint16_t ins16_b)
 	uint32_t addr = (u == 1) ? base + imm12 : base - imm12;
 	uint32_t data = this->ram.read8(addr);
 	this->regs[rt].write(data);
+}
+
+void Cpu::execute_op32_ldrd_imm(uint16_t ins16, uint16_t ins16_b)
+{
+	/* LDRD (imm) A6.7.49/T1 */
+	CPU_LOG_TRACE("OP32_LDRD_IMM\n");
+	this->pc += 4;
+	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
+	unsigned int rt2 = GET_FIELD(ins16_b, 8, 4);
+	unsigned int imm8 = GET_FIELD(ins16_b, 0, 8);
+	unsigned int p = GET_BIT(ins16, 8);
+	unsigned int u = GET_BIT(ins16, 7);
+	unsigned int w = GET_BIT(ins16, 5);
+	uint32_t rn = GET_FIELD(ins16, 0, 4);
+	uint32_t current_rn = this->regs[rn].read();
+	this->reg_a.write(current_rn);
+	uint32_t imm32 = imm8 << 2;
+	uint32_t offset_addr = (u == 1) ? current_rn + imm32 : current_rn - imm32;
+	uint32_t addr = (p == 1) ? offset_addr : current_rn;
+	this->regs[rt].write(this->ram.read32(addr));
+	this->regs[rt2].write(this->ram.read32(addr + 4));
+	if (w == 1)
+	{
+		this->regs[rn].write(offset_addr);
+	}
 }
