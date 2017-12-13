@@ -34,29 +34,38 @@
 #include <cstdio>
 
 #include "memory.h"
+#include "tracer.h"
+#include "utils.h"
 
 #define GET_BYTE(x, n) (((x) >> (8*(n))) & 0xff)
 
 Memory::Memory()
 {
 	/* intentionally empty */
-	this->mem = nullptr;
+	this->mem8 = nullptr;
+	this->mem16 = nullptr;
+	this->mem32 = nullptr;
 	this->size = 0;
 }
 
 Memory::~Memory()
 {
 	/* intentionally empty */
-	if (this->mem != nullptr)
+	if (this->mem8 != nullptr)
 	{
-		delete[] this->mem;
+		delete[] this->mem8;
 	}
+	this->mem8 = nullptr;
+	this->mem16 = nullptr;
+	this->mem32 = nullptr;
 }
 
 
 void Memory::set_size(uint32_t size)
 {
-	this->mem = new uint8_t[size];
+	this->mem8 = new uint8_t[size];
+	this->mem16 = (uint16_t *)(this->mem8);
+	this->mem32 = (uint32_t *)(this->mem8);
 	this->size = size;
 }
 
@@ -67,64 +76,161 @@ uint32_t Memory::get_size(void)
 }
 
 
+void Memory::bind_tracer(Tracer *ptr)
+{
+	this->tracer_ptr = ptr;
+}
+
+
 void Memory::write32(uint32_t addr, uint32_t val)
 {
-	/* TODO: check addr alignement */
-	this->write8(addr + 0, GET_BYTE(val, 0));
-	this->write8(addr + 1, GET_BYTE(val, 1));
-	this->write8(addr + 2, GET_BYTE(val, 2));
-	this->write8(addr + 3, GET_BYTE(val, 3));
+	if (addr >= (this->size - 4))
+	{
+		fprintf(stderr, "-- ERROR: writing 32-bit value outside of memory!");
+		std::exit(EXIT_FAILURE);
+	}
+	this->mem32[addr >> 2] = val;
+	unsigned int pwr = bit_count(val);
+	this->tracer_ptr->update(pwr);
 }
+
+
+void Memory::write32_notrace(uint32_t addr, uint32_t val)
+{
+	if (addr >= (this->size - 4))
+	{
+		fprintf(stderr, "-- ERROR: writing 32-bit value outside of memory!");
+		std::exit(EXIT_FAILURE);
+	}
+	this->mem32[addr >> 2] = val;
+}
+
 
 void Memory::write16(uint32_t addr, uint16_t val)
 {
-	/* TODO: check addr alignement */
-	this->write8(addr + 0, GET_BYTE(val, 0));
-	this->write8(addr + 1, GET_BYTE(val, 1));
+	if (addr >= (this->size - 2))
+	{
+		fprintf(stderr, "-- ERROR: writing 16-bit value outside of memory!");
+		std::exit(EXIT_FAILURE);
+	}
+	this->mem16[addr >> 1] = val;
+	unsigned int pwr = bit_count(val);
+	this->tracer_ptr->update(pwr);
 }
+
+
+void Memory::write16_notrace(uint32_t addr, uint16_t val)
+{
+	if (addr >= (this->size - 2))
+	{
+		fprintf(stderr, "-- ERROR: writing 16-bit value outside of memory!");
+		std::exit(EXIT_FAILURE);
+	}
+	this->mem16[addr >> 1] = val;
+}
+
 
 void Memory::write8(uint32_t addr, uint8_t val)
 {
 	if (addr >= this->size)
 	{
-		fprintf(stderr, "-- ERROR: writing outside of memory!");
+		fprintf(stderr, "-- ERROR: writing 8-bit value outside of memory!");
 		std::exit(EXIT_FAILURE);
 	}
-	this->mem[addr + 0] = val;
+	this->mem8[addr] = val;
+	unsigned int pwr = bit_count(val);
+	this->tracer_ptr->update(pwr);
 }
+
+
+void Memory::write8_notrace(uint32_t addr, uint8_t val)
+{
+	if (addr >= this->size)
+	{
+		fprintf(stderr, "-- ERROR: writing 8-bit value outside of memory!");
+		std::exit(EXIT_FAILURE);
+	}
+	this->mem8[addr] = val;
+}
+
 
 uint32_t Memory::read32(uint32_t addr)
 {
-	/* TODO: check addr alignement */
-	uint32_t ret;
-
-	ret = this->read8(addr);
-	ret += this->read8(addr + 1) << 8;
-	ret += this->read8(addr + 2) << 16;
-	ret += this->read8(addr + 3) << 24;
+	if (addr >= (this->size - 4))
+	{
+		fprintf(stderr, "-- ERROR: reading 32-bit value outside of memory!");
+		std::exit(EXIT_FAILURE);
+	}
+	uint32_t ret = this->mem32[addr >> 2];
+	unsigned int pwr = bit_count(ret);
+	this->tracer_ptr->update(pwr);
 	return ret;
 }
+
+
+uint32_t Memory::read32_notrace(uint32_t addr)
+{
+	if (addr >= (this->size - 4))
+	{
+		fprintf(stderr, "-- ERROR: reading 32-bit value outside of memory!");
+		std::exit(EXIT_FAILURE);
+	}
+	uint32_t ret = this->mem32[addr >> 2];
+	return ret;
+}
+
 
 uint16_t Memory::read16(uint32_t addr)
 {
-	/* TODO: check addr alignement */
-	uint16_t ret;
-
-	ret = this->read8(addr);
-	ret += this->read8(addr + 1) << 8;
+	if (addr >= (this->size - 2))
+	{
+		fprintf(stderr, "-- ERROR: reading 16-bit value outside of memory!");
+		std::exit(EXIT_FAILURE);
+	}
+	uint16_t ret = this->mem16[addr >> 1];
+	unsigned int pwr = bit_count(ret);
+	this->tracer_ptr->update(pwr);
 	return ret;
 }
+
+
+uint16_t Memory::read16_notrace(uint32_t addr)
+{
+	if (addr >= (this->size - 2))
+	{
+		fprintf(stderr, "-- ERROR: reading 16-bit value outside of memory!");
+		std::exit(EXIT_FAILURE);
+	}
+	uint16_t ret = this->mem16[addr >> 1];
+	return ret;
+}
+
 
 uint8_t Memory::read8(uint32_t addr)
 {
 	if (addr >= this->size)
 	{
-		fprintf(stderr, "-- ERROR: reading outside of memory!\n");
-		// std::exit(EXIT_FAILURE); <- gcc might read out of memory
-		return 0;
+		fprintf(stderr, "-- ERROR: reading 8-bit value outside of memory!\n");
+		std::exit(EXIT_FAILURE);
 	}
-	return this->mem[addr];
+	uint8_t ret = this->mem8[addr];
+	unsigned int pwr = bit_count(ret);
+	this->tracer_ptr->update(pwr);
+	return ret;
 }
+
+
+uint8_t Memory::read8_notrace(uint32_t addr)
+{
+	if (addr >= this->size)
+	{
+		fprintf(stderr, "-- ERROR: reading 8-bit value outside of memory!\n");
+		std::exit(EXIT_FAILURE);
+	}
+	uint8_t ret = this->mem8[addr];
+	return ret;
+}
+
 
 int Memory::load(const char *filename)
 {
@@ -141,7 +247,7 @@ int Memory::load(const char *filename)
 		{
 			char c;
 			input.get(c);
-			this->mem[i] = (uint8_t)c;
+			this->mem8[i] = (uint8_t)c;
 		}
 		return 0; /* success */
 	}
@@ -150,6 +256,7 @@ int Memory::load(const char *filename)
 		return -1; /* failure */
 	}
 }
+
 
 void Memory::dump(uint32_t start, uint32_t len)
 {
@@ -162,7 +269,7 @@ void Memory::dump(uint32_t start, uint32_t len)
 		{
 			fprintf(stderr, "0x%08x: ", addr);
 		}
-		fprintf(stderr, "%02x ", this->mem[addr]);
+		fprintf(stderr, "%02x ", this->mem8[addr]);
 		if ((i % 16) == 15)
 		{
 			fprintf(stderr, "\n");

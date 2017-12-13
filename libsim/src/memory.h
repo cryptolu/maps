@@ -34,24 +34,35 @@
 #define __MEMORY_H__
 
 #include <cstdint>
+#include "tracer.h"
 
 class Memory
 {
 	private:
-		uint8_t *mem;
+		uint8_t *mem8;
+		uint16_t *mem16; /* aliases for mem8 seen as an array of 16-bit numbers */
+		uint32_t *mem32; /* aliases for mem8 seen as an array of 32-bit numbers */
 		uint32_t size;
+		Tracer *tracer_ptr;
 
 	public:
 		Memory();
 		~Memory();
 		void set_size(uint32_t size);
 		uint32_t get_size(void);
+		void bind_tracer(Tracer *ptr);
 		void write32(uint32_t addr, uint32_t val);
 		void write16(uint32_t addr, uint16_t val);
 		void write8(uint32_t addr, uint8_t val);
+		void write32_notrace(uint32_t addr, uint32_t val);
+		void write16_notrace(uint32_t addr, uint16_t val);
+		void write8_notrace(uint32_t addr, uint8_t val);
 		uint32_t read32(uint32_t addr);
 		uint16_t read16(uint32_t addr);
 		uint8_t read8(uint32_t addr);
+		uint32_t read32_notrace(uint32_t addr);
+		uint16_t read16_notrace(uint32_t addr);
+		uint8_t read8_notrace(uint32_t addr);
 		int load(const char *filename);
 		void dump(uint32_t start, uint32_t len);
 };

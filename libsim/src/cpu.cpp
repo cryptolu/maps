@@ -63,6 +63,7 @@ Cpu::Cpu(Options &options)
 	this->with_gdb = options.with_gdb;
 	/* set up memory */
 	this->ram.set_size(options.mem_size);
+	this->ram.bind_tracer(&(this->tracer));
 	/* set up registers */
 	for (unsigned int i = 0; i < 15; i++)
 	{
@@ -168,37 +169,37 @@ uint32_t Cpu::read_apsr(void)
 
 void Cpu::write8_ram(uint32_t addr, uint8_t value)
 {
-	this->ram.write8(addr, value);
+	this->ram.write8_notrace(addr, value);
 }
 
 
 void Cpu::write16_ram(uint32_t addr, uint16_t value)
 {
-	this->ram.write16(addr, value);
+	this->ram.write16_notrace(addr, value);
 }
 
 
 void Cpu::write32_ram(uint32_t addr, uint32_t value)
 {
-	this->ram.write32(addr, value);
+	this->ram.write32_notrace(addr, value);
 }
 
 
 uint8_t Cpu::read8_ram(uint32_t addr)
 {
-	return this->ram.read8(addr);
+	return this->ram.read8_notrace(addr);
 }
 
 
 uint8_t Cpu::read16_ram(uint32_t addr)
 {
-	return this->ram.read16(addr);
+	return this->ram.read16_notrace(addr);
 }
 
 
 uint8_t Cpu::read32_ram(uint32_t addr)
 {
-	return this->ram.read32(addr);
+	return this->ram.read32_notrace(addr);
 }
 
 
@@ -227,7 +228,7 @@ void Cpu::copy_array_to_target(uint32_t *buffer, unsigned int len, uint32_t targ
 {
 	for (unsigned int i = 0; i < len; ++i)
 	{
-		this->ram.write32(target_addr + 4*i, buffer[i]);
+		this->ram.write32_notrace(target_addr + 4*i, buffer[i]);
 	}
 }
 
@@ -236,7 +237,7 @@ void Cpu::copy_array_from_target(uint32_t *buffer, unsigned int len, uint32_t ta
 {
 	for (unsigned int i = 0; i < len; ++i)
 	{
-		buffer[i] = this->ram.read32(target_addr + 4*i);
+		buffer[i] = this->ram.read32_notrace(target_addr + 4*i);
 	}
 }
 
@@ -257,11 +258,15 @@ Step_status Cpu::step(void)
 {
 	Step_status status = STEP_DONE;
 
-	/* fetch 1st part */
-	uint16_t ins16 = this->ram.read16(this->pc);
+	/* Instruction is fetch from the memory WITHOUT tracing those memory accesses since
+	   fetching the instructions should not leak information (unless your code is really
+	   really bad ...). This allows tracing the memory accesses when it is meaningfull
+	   without impacting the simulation speed too much.
+	 */
+	uint16_t ins16 = this->ram.read16_notrace(this->pc);
 	if (((ins16 & OP16_MASK) == OP16_VAL1) || ((ins16 & OP16_MASK) == OP16_VAL2) || ((ins16 & OP16_MASK) == OP16_VAL3))
 	{ /* 32-bit instructions */
-		uint32_t ins16_b = this->ram.read16(this->pc + 2);
+		uint32_t ins16_b = this->ram.read16_notrace(this->pc + 2);
 		uint32_t ins32 = (ins16 << 16) | ins16_b;
 		CPU_LOG_TRACE(">>>>>>>> p_addr = 0x%08x, ins32 = 0x%08x: ", this->pc, ins32);
 		if (TEST_INS32(OP32_LDMIA))
