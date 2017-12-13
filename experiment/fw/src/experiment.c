@@ -292,6 +292,18 @@ void experiment(uint16_t *buffer, uint32_t *rk_masked)
 		"ubfx r2, r3, #2, #9" CR
 		"sbfx r2, r3, #3, #9" CR
 		"bfc r2, #14, #3" CR
+		"ldrb r2, [%[buffer]]" CR
+		"orr %[buffer], %[buffer], %[buffer]" CR
+		"strb r2, [%[buffer]]" CR
+		"ldrb r9, [%[buffer], 4]" CR
+		"orr %[buffer], %[buffer], %[buffer]" CR
+		"strb r9, [%[buffer], 4]" CR
+		"add r3, %[buffer], 4" CR
+		"ldrb r2, [r3, -4]" CR
+		"mov r4, #1" CR
+		"ldrb r5, [%[buffer], r4, lsl 2]" CR
+		"mov r4, #2" CR
+		"ldrb r6, [%[buffer], r4]" CR
 
     :
     : [buffer] "r" (buffer), [rk_masked] "r" (rk_masked)

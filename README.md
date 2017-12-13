@@ -75,6 +75,10 @@ below is only there for my own documentation.
 ## Bugs/limitations
 
 Know limitations are:
-* I've tried to implement the strb instruction but I faced some strange delay effects in the register pipelines. As it
-was not really clear what was happening, I've removed the strb instruction. Feel free to add it back but just validate
-everything thouroghly.
+* The pipeline for ldrb/strb instructions is more complex than what is implemented in the simulator. For example, for the following code:
+```
+ldrb r2, [r0]
+strb r2, [r0]
+```
+reg_a and reg_b will not be simulated correctly by the simulator. The functionality is still correct though.
+When an other instruction is inserted between the ldrb and the strb instructions, the simulation is correct.

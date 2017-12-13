@@ -109,6 +109,8 @@ class Cpu
 		void execute_op16_str_imm(uint16_t ins16);
 		void execute_op16_ld_imm(uint16_t ins16);
 		void execute_op16_ldrb_imm(uint16_t ins16);
+		void execute_op16_ldrb_reg(uint16_t ins16);
+		void execute_op16_strb_imm(uint16_t ins16);
 		void execute_op16_rev(uint16_t ins16);
 		void execute_op16_rev16(uint16_t ins16);
 		void execute_op16_revsh(uint16_t ins16);
@@ -127,6 +129,9 @@ class Cpu
 		void execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ldrb_imm(uint16_t ins16, uint16_t ins16_b);
+		void execute_op32_ldrb_imm_alt(uint16_t ins16, uint16_t ins16_b);
+		void execute_op32_ldrb_reg(uint16_t ins16, uint16_t ins16_b);
+		void execute_op32_strb_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ld_literal_pool(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ldrb_literal(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ldrd_imm(uint16_t ins16, uint16_t ins16_b);
