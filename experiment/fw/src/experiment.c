@@ -304,6 +304,12 @@ void experiment(uint16_t *buffer, uint32_t *rk_masked)
 		"ldrb r5, [%[buffer], r4, lsl 2]" CR
 		"mov r4, #2" CR
 		"ldrb r6, [%[buffer], r4]" CR
+		"orr r4, r4, r4" CR
+		"strb r2, [r3, -4]" CR
+		"orr r1, r1, r1" CR
+		"strb r6, [%[buffer], r4]" CR
+		"orr r1, r1, r1" CR
+		"strb r5, [%[buffer], r4, lsl 1]" CR
 
     :
     : [buffer] "r" (buffer), [rk_masked] "r" (rk_masked)

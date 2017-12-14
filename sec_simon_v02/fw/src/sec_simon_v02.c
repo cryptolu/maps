@@ -2,7 +2,7 @@
 
 #define CR "\n\t"
 
-//#define CORRECT_LEAKAGE
+#define CORRECT_LEAKAGE
 
 void sec_simon_v02(uint32_t *buffer, uint32_t rk_masked)
 {
