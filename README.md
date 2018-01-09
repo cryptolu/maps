@@ -2,7 +2,7 @@
 
 ## Overview
 
-Fast Cortex-M3 simulator that dump power traces. More information can be found in https://eprint.iacr.org/2017/1253.pdf
+Fast Cortex-M3 simulator that creates power traces. More information can be found in https://eprint.iacr.org/2017/1253.pdf
 
 * written in C++ for speed
 * reads and simulates a .bin file created from an assembly/C source with GNU arm toolchain 
