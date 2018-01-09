@@ -1,13 +1,13 @@
-#arm_v7_m leakage simulator
+#Micro-Architectural Power Simulator (MAPS) for Cortex-M3
 
 ## Overview
 
-Fast arm_v7m simulator. Can be use to check assembly secure implementations for leakage.
+Fast Cortex-M3 simulator that dump power traces. More information can be found in https://eprint.iacr.org/2017/1253.pdf
 
 * written in C++ for speed
 * reads and simulates a .bin file created from an assembly/C source with GNU arm toolchain 
 
-Only instructions used typically in the coding of crypto primitives are supported.
+Only instructions typically found in the coding of crypto primitives are supported.
 Unsupported instructions might be added in cpu.cpp.
 
 ## Compiling
@@ -69,7 +69,7 @@ below is only there for my own documentation.
 4. Compile: make testcode TESTNAME=leakage
 5. Simulate: make run TESTNAME=leakage
 6. Convert the tarmac.log trace file into a register trace file: ../../../../../python/gen_trace.py > verilog_trace.log
-7. Copy the register trace file in the simulator tree: cp ~/Documents/repos/arm_v7m_leakage_simulator/rendered/sse050/logical/testbench/execution_tb/verilog_trace.log .
+7. Copy the register trace file in the simulator tree: cp ~/Documents/repos/maps/rendered/sse050/logical/testbench/execution_tb/verilog_trace.log .
 8. Compare the simulator trace and the RTL trace. Either visually using gvim -d sim_trace.log verilog_trace.log, or using: ./../../python/compare_traces.py
 
 ## Bugs/limitations
