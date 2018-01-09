@@ -1,4 +1,4 @@
-#Micro-Architectural Power Simulator (MAPS) for Cortex-M3
+# Micro-Architectural Power Simulator (MAPS) for Cortex-M3
 
 ## Overview
 
