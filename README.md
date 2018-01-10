@@ -21,15 +21,18 @@ Unsupported instructions might be added in cpu.cpp.
   1. cd sec_add_v05/fw/build
   2. make
 3. Compile an implementation simulator (still using sec_add_v05 as an example):
-  1. ccd sec_add_v05/sim/build
+  1. cd sec_add_v05/sim/build
   2. make
 
 ### Using the simulator
 
-The simulator read a .bin file that must be located in the current directory. The name of the
-.bin file depends on what was specified in the simulator sources.
+The simulator read a .bin file that must be located in the current directory. The name of the .bin file depends on what was specified in the simulator sources.
 
-The option '-h' shows the accepted options and parameters
+The simulator is supposed to be used when developing the firmware, so the usual way of running a simulation is to
+1. change directory to the firmware directory: cd sec_add_v05/fw/build
+2. run the simulator: ../../sim/build/sim_sec_add_v05 -n 1000
+
+The option '-h' shows the valid options and parameters.
 
 ### Coding a new fw implementation
 
