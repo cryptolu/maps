@@ -36,6 +36,8 @@ The option '-h' shows the accepted options and parameters
 A FW implementation is simply a C function (possibly containing assembly code), following the ARM ABI (1st parameter in r0, etc ...)
 There is no main function. All C and pre-processor functionalities may be used.
 
+The firmware may be compiled by any ARM compiler supporting the Cortex-M3. Only ARM gcc has been tested. The path to the ARM compiler executable may be changed in scripts/fw.mak by modifying the variable "DIR".
+
 ### Coding a new simulator
 
 It is best to start and modify an already exisiting simulator. The simulator must contain 3 functions:

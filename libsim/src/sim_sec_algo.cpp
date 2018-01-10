@@ -43,7 +43,7 @@
 #include "sim_sec_algo.h"
 #include "utils.h"
 
-#define VERSION_MAJOR 1.0
+#define VERSION_MAJOR 1.1
 #define VERSION_MINOR a
 
 int main(int argc, char *argv[])

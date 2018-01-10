@@ -32,6 +32,20 @@
 ALGO_DIRS := $(wildcard sec_*/.)
 TRACE_OPT := # blank, should be overriden by command line assignment
 
+.PHONY: help
+help:
+	@echo "################################################################################"; \
+	echo "Targets:"; \
+	echo "  all         : compile library, firmware, and simulator for all ciphers"; \
+	echo "  compile_lib : compile library"; \
+	echo "  compile_fw  : compile all firmwares"; \
+	echo "  compile_sim : compile all simulators"; \
+	echo "  check       : all + perform some checks"; \
+	echo "################################################################################"
+
+.PHONY: all
+all: compile_lib compile_fw compile_sim
+
 .PHONY: compile_fw
 compile_fw:
 	@for dir in $(ALGO_DIRS); do \
