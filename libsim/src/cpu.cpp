@@ -1006,7 +1006,7 @@ void Cpu::execute_op16_special_data_branch(uint16_t ins16)
 	{
 		case 0 ... 3: /* ADD REG A6.7.4/T2 */
 			{
-				rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
+				rd = GET_FIELD(ins16, 0, 3) | (GET_BIT(ins16, 7) << 3);
 				rm = GET_FIELD(ins16, 3, 4);
 				uint32_t current_rd = this->regs[rd].read();
 				uint32_t current_rm = this->regs[rm].read();
@@ -1023,7 +1023,7 @@ void Cpu::execute_op16_special_data_branch(uint16_t ins16)
 			break;
 		case 5 ... 7: /* CMP REG A6.7.28/T2 */
 			{
-				rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
+				rd = GET_FIELD(ins16, 0, 3) | (GET_BIT(ins16, 7) << 3);
 				rm = GET_FIELD(ins16, 3, 4);
 				uint32_t current_rd = this->regs[rd].read();
 				uint32_t current_rm = this->regs[rm].read();
@@ -1039,7 +1039,7 @@ void Cpu::execute_op16_special_data_branch(uint16_t ins16)
 			break;
 		case 8 ... 11: /* MOV REG A6.7.76/T1 */
 			{
-				rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
+				rd = GET_FIELD(ins16, 0, 3) | (GET_BIT(ins16, 7) << 3);
 				rm = GET_FIELD(ins16, 3, 4);
 				uint32_t current_rm = this->regs[rm].read();
 				this->reg_b.write(current_rm);
