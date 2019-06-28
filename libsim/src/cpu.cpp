@@ -309,9 +309,17 @@ Step_status Cpu::step(void)
 		{
 			this->execute_op32_str_imm(ins16, ins16_b);
 		}
+		else if (TEST_INS32(OP32_STR_IMM12))
+		{
+			this->execute_op32_str_imm12(ins16, ins16_b);
+		}
 		else if (TEST_INS32(OP32_LDR_IMM))
 		{
 			this->execute_op32_ldr_imm(ins16, ins16_b);
+		}
+		else if (TEST_INS32(OP32_LDR_IMM12))
+		{
+			this->execute_op32_ldr_imm12(ins16, ins16_b);
 		}
 		else if (TEST_INS32(OP32_LDRB_IMM))
 		{
@@ -1969,6 +1977,23 @@ void Cpu::execute_op32_branch_misc(uint16_t ins16, uint16_t ins16_b)
 }
 
 
+void Cpu::execute_op32_str_imm12(uint16_t ins16, uint16_t ins16_b)
+{
+	/* STR(immediate) A6.7.119/T3 */
+	CPU_LOG_TRACE("OP32_STR_IMM12\n");
+	this->pc += 4;
+	unsigned int rn = GET_FIELD(ins16, 0, 4);
+	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
+	unsigned int imm12 = GET_FIELD(ins16_b, 0, 12);
+	uint32_t current_rn = this->regs[rn].read();
+	this->reg_a.write(current_rn);
+	uint32_t d_addr = current_rn + imm12;
+	uint32_t current_rt = this->regs[rt].read();
+	this->reg_b.write(current_rt);
+	this->ram.write32(d_addr, current_rt);
+}
+
+
 void Cpu::execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b)
 {
 	/* STR(immediate) A6.7.119/T4 */
@@ -2040,6 +2065,25 @@ void Cpu::execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b)
 	}
 	this->regs[rt].write(data);
 }
+
+
+void Cpu::execute_op32_ldr_imm12(uint16_t ins16, uint16_t ins16_b)
+{
+	/* LDR(immediate) A6.7.42/T3 */
+	CPU_LOG_TRACE("OP32_LDR_IMM12\n");
+	this->pc += 4;
+	unsigned int rn = GET_FIELD(ins16, 0, 4);
+	unsigned int rt = GET_FIELD(ins16_b, 12, 4);
+	unsigned int imm12 = GET_FIELD(ins16_b, 0, 12);
+	uint32_t current_rn = this->regs[rn].read();
+	this->reg_a.write(current_rn);
+	uint32_t d_addr = current_rn + imm12;
+	uint32_t data = this->ram.read32(d_addr);
+	uint32_t current_rt = this->regs[rt].read();
+	this->reg_b.write(current_rt);
+	this->regs[rt].write(data);
+}
+
 
 void Cpu::execute_op32_ldrb_imm(uint16_t ins16, uint16_t ins16_b)
 {
