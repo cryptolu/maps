@@ -128,7 +128,9 @@ class Cpu
 		void execute_op32_data_reg(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_branch_misc(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_str_imm(uint16_t ins16, uint16_t ins16_b);
+		void execute_op32_str_imm12(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ldr_imm(uint16_t ins16, uint16_t ins16_b);
+		void execute_op32_ldr_imm12(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ldrb_imm(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ldrb_imm_alt(uint16_t ins16, uint16_t ins16_b);
 		void execute_op32_ldrb_reg(uint16_t ins16, uint16_t ins16_b);
