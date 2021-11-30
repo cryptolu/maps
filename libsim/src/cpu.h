@@ -104,14 +104,17 @@ class Cpu
 		void execute_op16_nop(void);
 		void execute_op16_breakpoint(uint16_t ins16);
 		void execute_op16_cond_branch(uint16_t ins16);
+		void execute_op16_uncond_branch(uint16_t ins16);
 		void execute_op16_ld_literal_pool(uint16_t ins16);
 		void execute_op32_ldmia(uint16_t ins16, uint16_t ins16_b);
 		void execute_op16_str_imm(uint16_t ins16);
 		void execute_op16_ld_imm(uint16_t ins16);
 		void execute_op16_ldrb_imm(uint16_t ins16);
 		void execute_op16_ldrb_reg(uint16_t ins16);
+		void execute_op16_ldr_reg(uint16_t ins16);
 		void execute_op16_strb_imm(uint16_t ins16);
 		void execute_op16_strb_reg(uint16_t ins16);
+		void execute_op16_str_reg(uint16_t ins16);
 		void execute_op16_rev(uint16_t ins16);
 		void execute_op16_rev16(uint16_t ins16);
 		void execute_op16_revsh(uint16_t ins16);

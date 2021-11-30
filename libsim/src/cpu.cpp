@@ -405,6 +405,10 @@ Step_status Cpu::step(void)
 		{
 			this->execute_op16_cond_branch(ins16);
 		}
+		else if (TEST_INS16(OP16_UNCOND_BRANCH))
+		{
+			this->execute_op16_uncond_branch(ins16);
+		}
 		else if (TEST_INS16(OP16_LD_LITERAL_POOL))
 		{
 			this->execute_op16_ld_literal_pool(ins16);
@@ -413,6 +417,10 @@ Step_status Cpu::step(void)
 		{
 			this->execute_op16_ldrb_imm(ins16);
 		}
+		else if (TEST_INS16(OP16_LDR_REG))
+		{
+			this->execute_op16_ldr_reg(ins16);
+		}
 		else if (TEST_INS16(OP16_LDRB_REG))
 		{
 			this->execute_op16_ldrb_reg(ins16);
@@ -420,6 +428,10 @@ Step_status Cpu::step(void)
 		else if (TEST_INS16(OP16_STRB_IMM))
 		{
 			this->execute_op16_strb_imm(ins16);
+		}
+		else if (TEST_INS16(OP16_STR_REG))
+		{
+			this->execute_op16_str_reg(ins16);
 		}
 		else if (TEST_INS16(OP16_STRB_REG))
 		{
@@ -1006,7 +1018,7 @@ void Cpu::execute_op16_special_data_branch(uint16_t ins16)
 	{
 		case 0 ... 3: /* ADD REG A6.7.4/T2 */
 			{
-				rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
+				rd = GET_FIELD(ins16, 0, 3) | (GET_BIT(ins16, 7) << 3);
 				rm = GET_FIELD(ins16, 3, 4);
 				uint32_t current_rd = this->regs[rd].read();
 				uint32_t current_rm = this->regs[rm].read();
@@ -1023,7 +1035,7 @@ void Cpu::execute_op16_special_data_branch(uint16_t ins16)
 			break;
 		case 5 ... 7: /* CMP REG A6.7.28/T2 */
 			{
-				rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
+				rd = GET_FIELD(ins16, 0, 3) | (GET_BIT(ins16, 7) << 3);
 				rm = GET_FIELD(ins16, 3, 4);
 				uint32_t current_rd = this->regs[rd].read();
 				uint32_t current_rm = this->regs[rm].read();
@@ -1039,7 +1051,7 @@ void Cpu::execute_op16_special_data_branch(uint16_t ins16)
 			break;
 		case 8 ... 11: /* MOV REG A6.7.76/T1 */
 			{
-				rd = GET_FIELD(ins16, 0, 2) | (GET_BIT(ins16, 7) << 3);
+				rd = GET_FIELD(ins16, 0, 3) | (GET_BIT(ins16, 7) << 3);
 				rm = GET_FIELD(ins16, 3, 4);
 				uint32_t current_rm = this->regs[rm].read();
 				this->reg_b.write(current_rm);
@@ -1143,6 +1155,17 @@ void Cpu::execute_op16_cond_branch(uint16_t ins16)
 }
 
 
+void Cpu::execute_op16_uncond_branch(uint16_t ins16)
+{
+	/* unconditional branch A6.7.12/T2 */
+	CPU_LOG_TRACE("OP16_UNCOND_BRANCH\n");
+	int8_t imm11 = (int8_t)GET_FIELD(ins16, 0, 11) & 0x7ff;
+	int32_t offset = imm11*2;
+	unsigned int cond = 14; /*always*/
+	this->execute_conditional_branch(cond, offset, false);
+}
+
+
 void Cpu::execute_op16_ld_literal_pool(uint16_t ins16)
 {
 	/* LDR (literal pool) A6.7.43/T1 */
@@ -1205,6 +1228,23 @@ void Cpu::execute_op16_ldrb_reg(uint16_t ins16)
 	this->regs[rt].write(data);
 }
 
+void Cpu::execute_op16_ldr_reg(uint16_t ins16)
+{
+	/* LDRB (reg) A6.7.47/T1 */
+	CPU_LOG_TRACE("OP16_LDR_REG\n");
+	this->pc += 2;
+	unsigned int rt = GET_FIELD(ins16, 0, 3);
+	unsigned int rn = GET_FIELD(ins16, 3, 3);
+	unsigned int rm = GET_FIELD(ins16, 6, 3);
+	uint32_t current_rn = this->regs[rn].read();
+	this->reg_a.write(current_rn);
+	uint32_t current_rm = this->regs[rm].read();
+	this->reg_b.write(current_rm);
+	uint32_t addr = current_rn + current_rm;
+	uint32_t data = this->ram.read32(addr);
+	this->regs[rt].write(data);
+}
+
 void Cpu::execute_op16_strb_imm(uint16_t ins16)
 {
 	/* LDRB (imm) A6.7.121/T1 */
@@ -1236,6 +1276,23 @@ void Cpu::execute_op16_strb_reg(uint16_t ins16)
 	uint32_t current_rt = this->regs[rt].read();
 	this->reg_a.write(current_rt);
 	this->ram.write8(addr, current_rt);
+}
+
+void Cpu::execute_op16_str_reg(uint16_t ins16)
+{
+	/* LDRB (imm) A6.7.122/T1 */
+	CPU_LOG_TRACE("OP16_STR_REG\n");
+	this->pc += 2;
+	unsigned int rn = GET_FIELD(ins16, 3, 3);
+	uint32_t current_rn = this->regs[rn].read();
+	this->reg_a.write(current_rn);
+	unsigned int rm = GET_FIELD(ins16, 6, 3);
+	uint32_t current_rm = this->regs[rm].read();
+	uint32_t addr = current_rn + current_rm;
+	unsigned int rt = GET_FIELD(ins16, 0, 3);
+	uint32_t current_rt = this->regs[rt].read();
+	this->reg_a.write(current_rt);
+	this->ram.write32(addr, current_rt);
 }
 
 void Cpu::execute_op16_rev(uint16_t ins16)
